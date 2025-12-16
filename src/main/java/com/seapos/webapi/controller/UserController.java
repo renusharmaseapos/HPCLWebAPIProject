@@ -1,7 +1,7 @@
 package com.seapos.webapi.controller;
 
 import com.seapos.webapi.models.*;
-import com.seapos.webapi.services.UseService;
+import com.seapos.webapi.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api/UserManagement")
 public class UserController {
-    UseService Service =new  UseService();
+    UserService Service =new UserService();
     @PostMapping("/ForgetUserPassword")
     public ResponseEntity<?> login(@RequestBody ChangePasswordInput request) {
         var result = Service.forgetUserPassword(request);

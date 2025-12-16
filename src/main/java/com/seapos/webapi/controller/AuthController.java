@@ -1,9 +1,8 @@
 package com.seapos.webapi.controller;
 
 import com.seapos.webapi.Utility.JWTToken;
-import com.seapos.webapi.dataaccess.UserDataAccess;
 import com.seapos.webapi.models.*;
-import com.seapos.webapi.services.UseService;
+import com.seapos.webapi.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.Objects;
 
 @RestController
@@ -24,7 +22,7 @@ public class AuthController {
     @Value("${spring.application.RedirectURL}")
     private String RedirectUrl;
 
-    UseService Uservic=new  UseService();
+    UserService Uservic=new UserService();
     // private AuthenticationManager authenticationManager;
     @Autowired private JWTToken jwtUtil;
     // @Autowired private UserDetailsService userDetailsService;

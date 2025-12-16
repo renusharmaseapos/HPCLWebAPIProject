@@ -12,10 +12,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api/UserManagement")
 public class UserController {
-    UseService Service =new  UseService();
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+   // UseService Service =new  UseService();
     @PostMapping("/ForgetUserPassword")
-    public ResponseEntity<?> login(@RequestBody ChangePasswordInput request) {
-        var result = Service.forgetUserPassword(request);
+    public ResponseEntity<?> ForgetUserPassword(@RequestBody ChangePasswordInput request) {
+        var result = UserService.forgetUserPassword(request);
         return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @PostMapping("AddUser")
+    public ResponseEntity<ApiResponseModel<Void>>addUser(
+            @Valid @RequestBody AddUserRequest request) {
+
+        ApiResponseModel<Void> response = userService.addOrUpdateUser(request);
+        return ResponseEntity.ok(response);
     }
 }

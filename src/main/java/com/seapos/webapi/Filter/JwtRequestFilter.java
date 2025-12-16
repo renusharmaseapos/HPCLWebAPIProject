@@ -20,7 +20,10 @@ import org.springframework.beans.factory.annotation.Value;
 public class JwtRequestFilter extends OncePerRequestFilter {
     @Value("${spring.application.Env}")
     private String Env;  // minutes
+    @Value("${spring.application.ApplicationName}")
+    private  String ApplicationName;
 
+    public static String Appname;
     @Autowired
     private JWTToken jwtUtil;
 
@@ -28,7 +31,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
-
+        Appname=ApplicationName;
         final String authHeader = request.getHeader("Authorization");
         final String headerUsername = request.getHeader("username");
 

@@ -7,17 +7,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 //import javax.servlet.http.HttpServletRequest;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
 @Service
 public class UseService {
+
 
     UserDataAccess dataAccess= new UserDataAccess();
     public MembershipUserCustom GetUser(String UserName){
@@ -143,58 +146,67 @@ public class UseService {
     }
 
 
-//    public  ResponseBase forgetUserPassword(ChangePasswordInput objPassword) {
-//
-//        ResponseBase result = new ResponseBase();
-//
-//        // Ensure password and confirm password are the same
-//        if (!objPassword.getNewPassword().equals(objPassword.getConfirmPassword())) {
-//            result.setResponseCode("0");
-//            result.setResponseMessage("Password and Confirm Password do not match.");
-//            return result;
-//        }
-//
-//        // Get the user from membership system
-//        MembershipUserCustom user = dataAccess.GetUser(objPassword.getUsername());
-//
-//        if (user == null) {
-//            result.setResponseCode("0");
-//            result.setResponseMessage("User not found.");
-//            return result;
-//        }
-//
-//        // Check if user is locked
-//        if (user.isIsLockedOut()) {
-//            result.setResponseCode("0");
-//            result.setResponseMessage("User account is locked. Kindly unlock the user.");
-//            return result;
-//        }
-//
-//        try {
-//            PassDetail passwordDetail = dataAccess.GetPassworddetails(objPassword.getUsername());
-//            // Change password
-//            String result = dataAccess.ChangePassword()
-//            boolean isChanged = MembershipService.changePassword(
-//                    user,
-//                    resetPassword,
-//                    objPassword.getNewPassword()
-//            );
-//
-//            if (isChanged) {
-//                result.setResponseCode("1");
-//                result.setResponseMessage("Password updated successfully.");
-//            } else {
-//                result.setResponseCode("0");
-//                result.setResponseMessage("Password update failed.");
-//            }
-//
-//        } catch (Exception ex) {
-//            // Log exception if logging exists
-//            result.setResponseCode("0");
-//            result.setResponseMessage("An error occurred while updating the password.");
-//        }
-//
-//        return result;
-//    }
+    public  ResponseBase forgetUserPassword(ChangePasswordInput objPassword) {
+
+        ResponseBase result = new ResponseBase();
+
+        // Ensure password and confirm password are the same
+        if (!objPassword.getNewPassword().equals(objPassword.getConfirmPassword())) {
+            result.setResponseCode("0");
+            result.setResponseMessage("Password and Confirm Password do not match.");
+            return result;
+        }
+
+        // Get the user from membership system
+        MembershipUserCustom user = dataAccess.GetUser(objPassword.getUsername());
+
+        if (user == null) {
+            result.setResponseCode("0");
+            result.setResponseMessage("User not found.");
+            return result;
+        }
+
+        // Check if user is locked
+        if (user.isIsLockedOut()) {
+            result.setResponseCode("0");
+            result.setResponseMessage("User account is locked. Kindly unlock the user.");
+            return result;
+        }
+
+        try {
+            PassDetail passwordDetail = dataAccess.GetPassworddetails(objPassword.getUsername());
+            String salt = generateSalt();
+            String HashedPass="";
+            if(passwordDetail.getPasswordFormat() == 1)
+                HashedPass=hashPassword(objPassword.getNewPassword(),salt);
+            else
+                HashedPass=objPassword.getNewPassword();
+
+            // Change password
+            String output = dataAccess.ChangePassword(objPassword.getUsername(),HashedPass,salt, String.valueOf(passwordDetail.getPasswordFormat()));
+
+            if (Objects.equals(output, "0")) {
+                result.setResponseCode("1");
+                result.setResponseMessage("Password updated successfully.");
+            } else {
+                result.setResponseCode("0");
+                result.setResponseMessage("Password update failed.");
+            }
+
+        } catch (Exception ex) {
+            // Log exception if logging exists
+            result.setResponseCode("0");
+            result.setResponseMessage("An error occurred while updating the password.");
+        }
+
+        return result;
+    }
+    private static String generateSalt() {
+        int SALT_SIZE = 16;
+        byte[] salt = new byte[SALT_SIZE];
+        SecureRandom secureRandom = new SecureRandom();
+        secureRandom.nextBytes(salt);
+        return Base64.getEncoder().encodeToString(salt);
+    }
 
 }

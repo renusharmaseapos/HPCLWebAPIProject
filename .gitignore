@@ -35,3 +35,16 @@ logs/application.log
 logs/application.log
 logs/application.log
 /logs
+/target
+/target
+/target/classes
+/target/classes/com/seapos/webapi/dataaccess
+target/classes/com/seapos/webapi/services/UseService.class
+*.log
+/logs
+/logs
+/target
+/target/classes
+/target/classes/com
+/target/classes/com/seapos/webapi
+/target/classes/com/seapos/webapi/services

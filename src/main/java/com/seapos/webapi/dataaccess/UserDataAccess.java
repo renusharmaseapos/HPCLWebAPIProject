@@ -1,6 +1,7 @@
 package com.seapos.webapi.dataaccess;
+import com.seapos.webapi.Filter.JwtRequestFilter;
 import com.seapos.webapi.models.*;
-import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -9,8 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+
+import static com.seapos.webapi.Filter.JwtRequestFilter.Appname;
+
 @Service
 public class UserDataAccess {
+
+
     public MembershipUserCustom GetUser(String UserName) {
         MembershipUserCustom Userdata = new MembershipUserCustom();
         Map<String, Object> inParams = new HashMap<>();
@@ -189,14 +195,11 @@ public class UserDataAccess {
         Map<String, Object> result = SQLHelper.executeNonQuery("uspInsertUsersInRoles", inParams);
         return 0;
     }
-    public String ChangePassword(String ApplicationName, String UserName, String NewPassword,String PasswordSalt
-    ,String PasswordFormat
-    ) {
+    public String ChangePassword(String UserName, String NewPassword,String PasswordSalt,String PasswordFormat) {
 
             String Result = "";
-
                 Map<String, Object> inParams = new HashMap<>();
-                inParams.put("p_ApplicationName", ApplicationName);
+                inParams.put("p_ApplicationName", Appname);
                 inParams.put("p_UserName", UserName);
                 inParams.put("p_NewPassword", NewPassword);
                 inParams.put("p_PasswordSalt", PasswordSalt);

@@ -1,7 +1,13 @@
 package com.seapos.webapi.dataaccess;
 import com.seapos.webapi.Filter.JwtRequestFilter;
+import com.seapos.webapi.exception.DalException;
+import com.seapos.webapi.exception.ValidationException;
 import com.seapos.webapi.models.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,7 +22,12 @@ import static com.seapos.webapi.Filter.JwtRequestFilter.Appname;
 @Service
 public class UserDataAccess {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserDataAccess.class);
+    private final JdbcTemplate jdbcTemplate;
 
+    public UserDataAccess(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
     public MembershipUserCustom GetUser(String UserName) {
         MembershipUserCustom Userdata = new MembershipUserCustom();
         Map<String, Object> inParams = new HashMap<>();
@@ -215,4 +226,50 @@ public class UserDataAccess {
             return Result;
         }
 
+    public String addOrUpdateUser(AddUserRequest r) {
+
+        try {
+            logger.info("DAL | uspAddEntityUser | email={}", r.getEmail());
+
+            String dbResponse = jdbcTemplate.queryForObject(
+                    "CALL uspAddEntityUser(?,?,?,?,?,?,?,?,?,?,?)",
+                    String.class,
+                    r.getFirstName(),
+                    r.getLastName(),
+                    r.getEmail(),
+                    r.getMobile(),
+                    r.getEntityTypeId(),
+                    r.getEntityId(),
+                    r.getRoleId(),
+                    r.getUserId(),
+                    r.getClientIds(),
+                    r.getUserStatus(),
+                    r.getCreatedBy()
+            );
+
+            // DB SUCCESS
+            if (dbResponse == null || dbResponse.trim().isEmpty()) {
+                throw new DalException("Empty response from database", null);
+            }
+
+            return dbResponse;
+
+        } catch (DataAccessException dae) {
+
+            String dbMsg = dae.getMostSpecificCause().getMessage();
+            logger.error("DAL ERROR | email={} | msg={}", r.getEmail(), dbMsg);
+
+            // BUSINESS VALIDATION ERRORS
+            if (dbMsg.contains("Duplicate Email")) {
+                throw new ValidationException("Email already exists");
+            }
+
+            if (dbMsg.contains("Invalid Merchant")) {
+                throw new ValidationException("Invalid Merchant Id");
+            }
+
+            // SYSTEM / DB FAILURE
+            throw new DalException("Database operation failed", dae);
+        }
+    }
 }

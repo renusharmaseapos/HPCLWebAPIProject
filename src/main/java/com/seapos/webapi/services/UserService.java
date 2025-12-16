@@ -3,6 +3,7 @@ import com.seapos.webapi.models.*;
 import com.seapos.webapi.dataaccess.UserDataAccess;
 //import com.seapos.webapi.models.AppProperties;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 //import javax.servlet.http.HttpServletRequest;
 import java.security.SecureRandom;
@@ -13,10 +14,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
 @Service
+//@RequiredArgsConstructor
 public class UserService {
-
-
-    UserDataAccess dataAccess= new UserDataAccess();
+    //UserDataAccess dataAccess= new UserDataAccess();
+    private final UserDataAccess dataAccess;
+    public UserService(UserDataAccess dataAccess) {
+        this.dataAccess = dataAccess;
+    }
     public MembershipUserCustom GetUser(String UserName){
         return dataAccess.GetUser(UserName);
     }
@@ -203,4 +207,13 @@ public class UserService {
         return Base64.getEncoder().encodeToString(salt);
     }
 
+    public ApiResponseModel addOrUpdateUser(AddUserRequest request) {
+
+        String dbMessage = dataAccess.addOrUpdateUser(request);
+
+        ApiResponseModel response = new ApiResponseModel();
+        response.setStatus(true);
+        response.setSuccessMessage(dbMessage);
+        return response;
+    }
 }

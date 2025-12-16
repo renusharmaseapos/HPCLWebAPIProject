@@ -1,10 +1,8 @@
 package com.seapos.webapi.services;
+import com.seapos.webapi.models.*;
 import org.springframework.beans.factory.annotation.Value;
 import com.seapos.webapi.dataaccess.UserDataAccess;
 //import com.seapos.webapi.models.AppProperties;
-import com.seapos.webapi.models.EntityUser;
-import com.seapos.webapi.models.MembershipUserCustom;
-import com.seapos.webapi.models.PassDetail;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
@@ -145,38 +143,37 @@ public class UseService {
     }
 
 
-//    public static VerifyOtpModelOutput forgetUserPassword(ChangePasswordInput objPassword) {
+//    public  ResponseBase forgetUserPassword(ChangePasswordInput objPassword) {
 //
-//        VerifyOtpModelOutput result = new VerifyOtpModelOutput();
+//        ResponseBase result = new ResponseBase();
 //
 //        // Ensure password and confirm password are the same
 //        if (!objPassword.getNewPassword().equals(objPassword.getConfirmPassword())) {
-//            result.setResponseCode(0);
+//            result.setResponseCode("0");
 //            result.setResponseMessage("Password and Confirm Password do not match.");
 //            return result;
 //        }
 //
 //        // Get the user from membership system
-//        MembershipUser user = MembershipService.getUser(objPassword.getUsername());
+//        MembershipUserCustom user = dataAccess.GetUser(objPassword.getUsername());
 //
 //        if (user == null) {
-//            result.setResponseCode(0);
+//            result.setResponseCode("0");
 //            result.setResponseMessage("User not found.");
 //            return result;
 //        }
 //
 //        // Check if user is locked
-//        if (user.isLockedOut()) {
-//            result.setResponseCode(0);
+//        if (user.isIsLockedOut()) {
+//            result.setResponseCode("0");
 //            result.setResponseMessage("User account is locked. Kindly unlock the user.");
 //            return result;
 //        }
 //
 //        try {
-//            // Reset password
-//            String resetPassword = MembershipService.resetPassword(user);
-//
+//            PassDetail passwordDetail = dataAccess.GetPassworddetails(objPassword.getUsername());
 //            // Change password
+//            String result = dataAccess.ChangePassword()
 //            boolean isChanged = MembershipService.changePassword(
 //                    user,
 //                    resetPassword,
@@ -184,16 +181,16 @@ public class UseService {
 //            );
 //
 //            if (isChanged) {
-//                result.setResponseCode(1);
+//                result.setResponseCode("1");
 //                result.setResponseMessage("Password updated successfully.");
 //            } else {
-//                result.setResponseCode(0);
+//                result.setResponseCode("0");
 //                result.setResponseMessage("Password update failed.");
 //            }
 //
 //        } catch (Exception ex) {
 //            // Log exception if logging exists
-//            result.setResponseCode(0);
+//            result.setResponseCode("0");
 //            result.setResponseMessage("An error occurred while updating the password.");
 //        }
 //

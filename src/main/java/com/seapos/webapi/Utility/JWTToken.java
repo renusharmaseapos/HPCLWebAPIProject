@@ -3,6 +3,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -10,7 +11,10 @@ import java.util.Date;
 
 @Component
 public class JWTToken {
+    @Value("${spring.application.TokenExpiration}")
+    private String TokenExpiration;  // minutes
 
+    public static long expirytime = 0L;
     private static final String SECRET = "nZv7vIGZ6n/LzZhNCUYFQtcVyxZu+1JKiTQI7P6qPUk=";
 
     private Key getSigningKey() {
@@ -19,21 +23,28 @@ public class JWTToken {
     }
 
     public String generateToken(String username) {
+
+         expirytime = Integer.parseInt(TokenExpiration)* 60L*1000;
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour
+                .setExpiration(new Date(System.currentTimeMillis() + expirytime)) // 1 hour
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public String extractUsername(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        }
+        catch (Exception e) {
+            return null;
+        }
     }
 
     public boolean isTokenValid(String token, String usernameFromUserDetails) {

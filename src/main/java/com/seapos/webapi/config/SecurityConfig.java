@@ -12,8 +12,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
 
-    @Autowired
-    private JwtRequestFilter jwtRequestFilter;
+    private final JwtRequestFilter jwtRequestFilter;
+
+    public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
+        this.jwtRequestFilter = jwtRequestFilter;
+    }
 
     private static final String[] SWAGGER_WHITELIST = {
             "/swagger-ui/**",
@@ -28,15 +31,19 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
+
+                // 🔥 TEMP: ALLOW EVERYTHING
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()   // <<< IMPORTANT
                 )
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
 
+        // JWT filter still registered
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

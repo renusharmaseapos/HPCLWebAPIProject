@@ -1,6 +1,9 @@
 spring:
   application:
     name: Seapos Web API
+    TokenExpiration: 20
+    RedirectURL: http://www.c.com/Account/Login.aspx
+    Env : Dev
   datasource:
     url: jdbc:mysql://161.248.37.211:3306/Seapos_Dev
     username: root

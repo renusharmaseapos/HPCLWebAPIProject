@@ -11,75 +11,78 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
+    @Value("${spring.application.Env}")
+    private String Env;  // minutes
 
     @Autowired
     private JWTToken jwtUtil;
-    // URLs that should bypass JWT filter
-    private static final String[] WHITELIST = {
-            "/webapi/auth/login",
-            "/swagger-ui",
-            "/v3/api-docs"
-    };
-
-    private boolean isWhitelisted(String uri) {
-        for (String path : WHITELIST) {
-            if (uri.startsWith(path)) return true;
-        }
-        return false;
-    }
-
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain chain)
-            throws ServletException, IOException {
+                                    FilterChain chain) throws ServletException, IOException {
 
-        String uri = request.getRequestURI();
-
-        // 1. Allow Swagger + Login// BYPASS JWT for public URLs
-        if (isWhitelisted(uri)) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        // 2. Read headers
         final String authHeader = request.getHeader("Authorization");
         final String headerUsername = request.getHeader("username");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String username = null;
+        String jwt = null;
+        if(Objects.equals(Env, "Dev"))
+        // if(request.getRequestURL().toString().toUpperCase().contains("LOGIN"))
+        {
+            chain.doFilter(request, response);
+            return;
+        }
+       else if(request.getRequestURL().toString().toUpperCase().contains("LOGIN"))
+        {
+            chain.doFilter(request, response);
+            return;
+        }
+        else if(headerUsername == null)
+        {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Invalid Token");
             return;
         }
+        else {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Invalid Token");
+                return;
+            } else {
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    jwt = authHeader.substring(7);
+                    username = jwtUtil.extractUsername(jwt);
+                }
+                if (username != null ) {
+                    if(!headerUsername.equals(username)) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.getWriter().write("Invalid Token");
+                        return;
+                    }
+                    else
+                    if (!jwtUtil.isTokenValid(jwt, username)) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.getWriter().write("Invalid Token");
+                        return;
+                    }
+                }
+                else {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Invalid Token");
+                    return;
+                }
 
-        if (headerUsername == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid Token");
-            return;
+
+                chain.doFilter(request, response);
+            }
         }
-
-        // 3. Extract JWT & username
-        String jwt = authHeader.substring(7);
-        String usernameFromToken = jwtUtil.extractUsername(jwt);
-
-        if (usernameFromToken == null || !usernameFromToken.equals(headerUsername)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid Token");
-            return;
-        }
-
-        // 4. Validate token
-        if (!jwtUtil.isTokenValid(jwt, usernameFromToken)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid Token");
-            return;
-        }
-
-        // 5. Continue
-        chain.doFilter(request, response);
     }
 }

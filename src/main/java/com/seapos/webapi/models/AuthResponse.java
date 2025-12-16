@@ -1,12 +1,15 @@
 package com.seapos.webapi.models;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class AuthResponse {
-    private String token;
-    public AuthResponse(String token) { this.token = token; }
+    private String access_token;
+    private String token_type;
+    private Long expires_in;
+    private boolean IsRedirect;
+    private String RedirectUrl;
 
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public String getToken() { return token; }
 }

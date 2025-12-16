@@ -40,7 +40,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         }
-       else if(request.getRequestURL().toString().toUpperCase().contains("LOGIN"))
+        else if(request.getRequestURL().toString().toUpperCase().contains("LOGIN"))
         {
             chain.doFilter(request, response);
             return;

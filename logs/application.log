@@ -7,54 +7,12 @@
 2025-12-16 12:27:57 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 15516 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
 2025-12-16 12:27:58 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
 2025-12-16 12:28:00 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.97 seconds (process running for 4.79)
-2025-12-16 14:05:14 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 8836 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:05:14 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:05:19 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 7.663 seconds (process running for 9.427)
-2025-12-16 14:05:49 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 17908 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:05:49 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:05:52 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.92 seconds (process running for 3.484)
-2025-12-16 14:07:38 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 26156 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:07:38 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:07:40 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.729 seconds (process running for 3.241)
-2025-12-16 14:09:07 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 18028 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:09:07 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:09:09 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.89 seconds (process running for 3.399)
-2025-12-16 14:09:18 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 27104 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:09:18 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:09:20 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.696 seconds (process running for 3.395)
-2025-12-16 14:10:51 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 3204 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:10:51 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:10:53 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.539 seconds (process running for 3.073)
-2025-12-16 14:12:03 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 20308 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:12:03 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:12:05 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.682 seconds (process running for 3.177)
-2025-12-16 14:14:40 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 26168 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:14:40 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:14:42 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.651 seconds (process running for 3.201)
-2025-12-16 14:21:56 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 19856 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:21:56 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:21:58 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.56 seconds (process running for 3.087)
-2025-12-16 14:24:03 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 19612 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:24:03 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:24:05 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.579 seconds (process running for 3.069)
-2025-12-16 14:24:42 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 13520 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:24:42 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:24:44 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.582 seconds (process running for 3.102)
-2025-12-16 14:27:27 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 21424 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:27:27 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:27:29 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.586 seconds (process running for 3.097)
-2025-12-16 14:35:15 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 26560 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:35:15 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:35:17 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.612 seconds (process running for 3.154)
-2025-12-16 14:36:35 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 23640 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:36:35 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:36:37 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.617 seconds (process running for 3.123)
-2025-12-16 14:48:05 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 25312 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:48:05 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:48:20 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 15.376 seconds (process running for 15.882)
-2025-12-16 14:50:53 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 308 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:50:53 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:50:55 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.687 seconds (process running for 3.201)
-2025-12-16 14:54:41 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 8420 (C:\Work\Java\HPCLWebAPIProject\target\classes started by Dell in C:\Work\Java\HPCLWebAPIProject)
-2025-12-16 14:54:41 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
-2025-12-16 14:54:43 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 2.777 seconds (process running for 3.316)
+2025-12-16 15:54:14 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 20488 (C:\Ayush Seapos\Projects\github\HPCLWebAPIProject\target\classes started by Commdel (Account) in C:\Ayush Seapos\Projects\github\HPCLWebAPIProject)
+2025-12-16 15:54:14 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
+2025-12-16 15:54:18 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 5.891 seconds (process running for 6.868)
+2025-12-16 16:01:57 [main] INFO  c.s.webapi.SeaposWebApiApplication - Starting SeaposWebApiApplication using Java 17.0.17 with PID 16068 (C:\Ayush Seapos\Projects\github\HPCLWebAPIProject\target\classes started by Commdel (Account) in C:\Ayush Seapos\Projects\github\HPCLWebAPIProject)
+2025-12-16 16:01:57 [main] INFO  c.s.webapi.SeaposWebApiApplication - No active profile set, falling back to 1 default profile: "default"
+2025-12-16 16:02:00 [main] INFO  c.s.webapi.SeaposWebApiApplication - Started SeaposWebApiApplication in 4.167 seconds (process running for 4.905)
+2025-12-16 16:03:08 [http-nio-8080-exec-2] INFO  c.s.w.d.user.UserRepositoryImpl - Calling uspAddEntityUser | email=ayushty2awginew@test.com
+2025-12-16 16:03:22 [http-nio-8080-exec-4] INFO  c.s.w.d.user.UserRepositoryImpl - Calling uspAddEntityUser | email=ayushty2awginew@test.com
+2025-12-16 16:04:00 [http-nio-8080-exec-5] INFO  c.s.w.d.user.UserRepositoryImpl - Calling uspAddEntityUser | email=ayushty2awginew@test.com

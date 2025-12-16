@@ -1,37 +1,86 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+####################################
+# OS files
+####################################
+.DS_Store
+Thumbs.db
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
+####################################
+# IDE files
+####################################
+# IntelliJ IDEA
+.idea/
 *.iml
-*.ipr
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+# Eclipse / STS
+.project
+.classpath
+.settings/
+.factorypath
 
-### VS Code ###
+# VS Code
 .vscode/
-logs/application.log
-logs/application.log
-logs/application.log
-/logs
+
+####################################
+# Build output
+####################################
+/target/
+/build/
+out/
+
+####################################
+# Logs
+####################################
+*.log
+logs/
+
+####################################
+# Runtime files
+####################################
+*.pid
+*.pid.lock
+
+####################################
+# Environment / Secrets
+####################################
+.env
+.env.*
+application-local.yml
+application-local.properties
+application-dev.yml
+application-dev.properties
+application-prod.yml
+application-prod.properties
+
+####################################
+# Maven
+####################################
+.mvn/wrapper/maven-wrapper.jar
+dependency-reduced-pom.xml
+
+####################################
+# Gradle (if ever used)
+####################################
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+####################################
+# Test reports
+####################################
+surefire-reports/
+failsafe-reports/
+
+####################################
+# Coverage
+####################################
+jacoco/
+*.exec
+
+####################################
+# Docker
+####################################
+*.tar
+
+
+
+# Maven build
+target/

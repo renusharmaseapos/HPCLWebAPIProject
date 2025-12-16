@@ -4,6 +4,7 @@ spring:
     TokenExpiration: 20
     RedirectURL: http://www.c.com/Account/Login.aspx
     Env : Dev
+    ApplicationName : HPCL
   datasource:
     url: jdbc:mysql://161.248.37.211:3306/Seapos_Dev
     username: root

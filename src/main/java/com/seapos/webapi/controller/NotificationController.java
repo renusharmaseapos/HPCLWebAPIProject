@@ -19,5 +19,9 @@ public class NotificationController {
     @PostMapping("/SendNotification")
     public ResponseBase SendNotification(@RequestBody SendNotification notification) {
         return service.SendNotification(notification);
+
+
     }
 }
+
+

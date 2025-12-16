@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: Seapos Web API
+  datasource:
+    url: jdbc:mysql://161.248.37.211:3306/Seapos_Dev
+    username: root
+    password: stauth
+    driver-class-name: com.mysql.cj.jdbc.Driver

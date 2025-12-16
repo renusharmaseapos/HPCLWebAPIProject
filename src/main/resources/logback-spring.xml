@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+
+    <!-- LOG PATH -->
+    <property name="LOG_PATH" value="${user.dir}/logs" />
+    <property name="PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" />
+
+    <!--  - APPLICATION INFO LOG FILE  - -->
+    <appender name="APP_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/application.log</file>
+        <encoder>
+            <pattern>${PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/application-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--  - ERROR LOG FILE   - -->
+    <appender name="ERROR_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/error.log</file>
+        <encoder>
+            <pattern>${PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/error-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <!--  APPLICATION LOGGER (Only your code)   -->
+    <logger name="com.seapos.webapi" level="INFO" additivity="false">
+        <appender-ref ref="APP_INFO"/>
+        <appender-ref ref="ERROR_LOG"/>
+    </logger>
+
+    <!-- - ROOT LOGGER (console only)  -->
+    <root level="WARN">
+        <!-- no file appenders here -->
+    </root>
+
+</configuration>

@@ -15,12 +15,17 @@ import java.util.UUID;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
+import lombok.RequiredArgsConstructor;
 import com.seapos.webapi.Utility.MembershipCreateStatus;
 @Service
 public class UserService {
 
 
-    UserDataAccess dataAccess= new UserDataAccess();
+  //  UserDataAccess dataAccess= new UserDataAccess();
+  private final UserDataAccess dataAccess;
+    public UserService(UserDataAccess dataAccess) {
+        this.dataAccess = dataAccess;
+    }
     public MembershipUserCustom GetUser(String UserName){
         return dataAccess.GetUser(UserName);
     }
@@ -207,7 +212,15 @@ public class UserService {
         return Base64.getEncoder().encodeToString(salt);
     }
 
+    public ApiResponseModel addOrUpdateUser(AddUserRequest request) {
 
+        String dbMessage = dataAccess.addOrUpdateUser(request);
+
+        ApiResponseModel response = new ApiResponseModel();
+        response.setStatus(true);
+        response.setSuccessMessage(dbMessage);
+        return response;
+    }
 //    public ApiResponse addUser(@RequestBody UserModel userModel) {
 //        MembershipUserCustom membershipController = new MembershipUserCustom();
 //        int numericUserId = 0;

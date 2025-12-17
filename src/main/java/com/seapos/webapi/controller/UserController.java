@@ -9,19 +9,29 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.apache.catalina.Service;
 import java.util.Objects;
 
 @RestController
 @RequestMapping("api/UserManagement")
+@RequiredArgsConstructor
 public class UserController {
-    UserService Service =new UserService();
+    private final UserService Service;
+    //UserService Service =new UserService();
     @PostMapping("/ForgetUserPassword")
     public ResponseEntity<?> ForgetUserPassword(@RequestBody ChangePasswordInput request) {
         var result = Service.forgetUserPassword(request);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
+    @PostMapping("/AddUser")
+    public ResponseEntity<ApiResponseModel>addUser(
+            @Valid @RequestBody AddUserRequest request) {
 
+        ApiResponseModel  response = Service.addOrUpdateUser(request);
+        return ResponseEntity.ok(response);
+    }
 
 //    @PostMapping("/addUser")
 //    public ResponseEntity<?> addUser(@RequestBody UserModel userModel) {

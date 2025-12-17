@@ -12,12 +12,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-
+import com.seapos.webapi.exception.DalException;
+import com.seapos.webapi.exception.ValidationException;
+import com.seapos.webapi.models.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import static com.seapos.webapi.Filter.JwtRequestFilter.Appname;
 
 @Service
 public class UserDataAccess {
+    private static final Logger logger = LoggerFactory.getLogger(UserDataAccess.class);
+    private final JdbcTemplate jdbcTemplate;
 
+    public UserDataAccess(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     public MembershipUserCustom GetUser(String UserName) {
         MembershipUserCustom Userdata = new MembershipUserCustom();
@@ -250,7 +262,53 @@ public class UserDataAccess {
 
         return output;
     }
+    public String addOrUpdateUser(AddUserRequest r) {
 
+        try {
+            logger.info("DAL | uspAddEntityUser | email={}", r.getEmail());
+
+            String dbResponse = jdbcTemplate.queryForObject(
+                    "CALL uspAddEntityUser(?,?,?,?,?,?,?,?,?,?,?)",
+                    String.class,
+                    r.getFirstName(),
+                    r.getLastName(),
+                    r.getEmail(),
+                    r.getMobile(),
+                    r.getEntityTypeId(),
+                    r.getEntityId(),
+                    r.getRoleId(),
+                    r.getUserId(),
+                    r.getClientIds(),
+                    r.getUserStatus(),
+                    r.getCreatedBy()
+            );
+
+            // DB SUCCESS
+            if (dbResponse == null || dbResponse.trim().isEmpty()) {
+                throw new DalException("Empty response from database", null);
+            }
+
+            return dbResponse;
+
+        } catch (DataAccessException dae) {
+
+            String dbMsg = dae.getMostSpecificCause().getMessage();
+            logger.error("DAL ERROR | email={} | msg={}", r.getEmail(), dbMsg);
+
+            // BUSINESS VALIDATION ERRORS
+            if (dbMsg.contains("Duplicate Email")) {
+                throw new ValidationException("Email already exists");
+            }
+
+            if (dbMsg.contains("Invalid Merchant")) {
+                throw new ValidationException("Invalid Merchant Id");
+            }
+
+            // SYSTEM / DB FAILURE
+            throw new DalException("Database operation failed", dae);
+        }
+    }
+}
 //    public static MembershipUserCustom CreateUser(String username, String password, String email, String passwordQuestion, String encodedPasswordAnswer, String salt,
 //                                                  MembershipCreateStatus status, int UniqueEmail, long empCode , int usertype )
 //    {
@@ -323,4 +381,3 @@ public class UserDataAccess {
 //    {
 //        return new LocalDateTime(utcDateTime.getYear(), utcDateTime.getMonth(), utcDateTime.getDayOfMonth(), utcDateTime.getHour(), utcDateTime.getMinute(), utcDateTime.getSecond(), Instant.now());
 //    }
-}

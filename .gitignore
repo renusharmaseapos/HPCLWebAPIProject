@@ -1,8 +1,13 @@
+@ -1,50 +1,49 @@
 HELP.md
+############################
+# Maven
+############################
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+!.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###
 .apt_generated
@@ -12,12 +17,23 @@ target/
 .settings
 .springBeans
 .sts4-cache
+############################
+# Logs
+############################
+logs/
+*.log
 
 ### IntelliJ IDEA ###
 .idea
 *.iws
+############################
+# IntelliJ IDEA
+############################
+.idea/
 *.iml
+*.iws
 *.ipr
+out/
 
 ### NetBeans ###
 /nbproject/private/
@@ -30,6 +46,18 @@ build/
 !**/src/test/**/build/
 
 ### VS Code ###
+############################
+# Eclipse / STS
+############################
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+############################
+# VS Code
+############################
 .vscode/
 logs/application.log
 logs/application.log
@@ -48,7 +76,17 @@ target/classes/com/seapos/webapi/services/UseService.class
 /target/classes/com
 /target/classes/com/seapos/webapi
 /target/classes/com/seapos/webapi/services
-*.log
-*.log
-logs/application.log
-/logs
+
+############################
+# OS files
+############################
+.DS_Store
+Thumbs.db
+
+############################
+# Env / Secrets
+############################
+.env
+application-*.properties
+application-*.yml
+

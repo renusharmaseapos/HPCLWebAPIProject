@@ -22,7 +22,10 @@ public class AuthController {
     @Value("${spring.application.RedirectURL}")
     private String RedirectUrl;
 
-    UserService Uservic=new UserService();
+       private final UserService Uservic;
+    public AuthController(UserService Uservic) {
+        this.Uservic = Uservic;
+    }
     // private AuthenticationManager authenticationManager;
     @Autowired private JWTToken jwtUtil;
     // @Autowired private UserDetailsService userDetailsService;

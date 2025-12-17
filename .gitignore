@@ -48,3 +48,7 @@ target/classes/com/seapos/webapi/services/UseService.class
 /target/classes/com
 /target/classes/com/seapos/webapi
 /target/classes/com/seapos/webapi/services
+*.log
+*.log
+logs/application.log
+/logs

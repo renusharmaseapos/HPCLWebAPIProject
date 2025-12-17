@@ -16,7 +16,7 @@ public class DeviceDataAccess {
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("@MerchantCode", merchantCode);
 
-        List<Map<String, Object>> result = SQLHelper.getRecords("uspGetDeviceList","HPCL", inParams);
+        List<Map<String, Object>> result = SQLHelper.getRecords("uspGetDeviceList", inParams);
         if(result != null)
         {
             for(Map<String, Object> row : result)

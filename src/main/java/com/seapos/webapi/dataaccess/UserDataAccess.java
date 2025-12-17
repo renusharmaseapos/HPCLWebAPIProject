@@ -1,9 +1,11 @@
 package com.seapos.webapi.dataaccess;
 import com.seapos.webapi.Filter.JwtRequestFilter;
+import com.seapos.webapi.Utility.MembershipCreateStatus;
 import com.seapos.webapi.models.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +24,7 @@ public class UserDataAccess {
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("p_UserName", UserName);
 
-        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_GetUserByName", "Seapos_Dev", inParams);
+        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_GetUserByName", inParams);
         if (!result.isEmpty()) {
             List rsList = (List) result.get("#result-set-1");
             if (!rsList.isEmpty()) {
@@ -49,7 +51,7 @@ public class UserDataAccess {
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("p_UserName", UserName);
 
-        Map<String, Object> result = SQLHelper.getRecord("uspGetEntityUser", "Seapos_Dev", inParams);
+        Map<String, Object> result = SQLHelper.getRecord("uspGetEntityUser",  inParams);
         if (!result.isEmpty()) {
             List rsList = (List) result.get("#result-set-1");
             if (!rsList.isEmpty()) {
@@ -71,7 +73,7 @@ public class UserDataAccess {
         EntityUser Userdata = new EntityUser();
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("p_UserName", UserName);
-        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_GetPasswordWithFormat", "Seapos_Dev", inParams);
+        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_GetPasswordWithFormat",  inParams);
         if (!result.isEmpty()) {
             List rsList = (List) result.get("#result-set-1");
             if (!rsList.isEmpty()) {
@@ -94,7 +96,7 @@ public class UserDataAccess {
                               LocalDateTime lastLoginDate, LocalDateTime lastActivityDate) {
 
         Map<String, Object> inParams = new HashMap<>();
-        inParams.put("p_ApplicationName", "HPCL");
+        inParams.put("p_ApplicationName", Appname);
         inParams.put("p_UserName", username);
         inParams.put("p_IsPasswordCorrect", isPasswordCorrect);
         inParams.put("p_UpdateLastLoginActivityDate", updateLastLoginActivityDate);
@@ -127,7 +129,7 @@ public class UserDataAccess {
         Map<String, Object> inParams = new HashMap<>();
         Long resultCode = 0L;
         inParams.put("p_UserName", Usernamee);
-        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_UnlockUser", "Seapos_Dev", inParams);
+        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_UnlockUser", inParams);
         if (!result.isEmpty()) {
             List rsList = (List) result.get("#result-set-1");
             Map mapData = (Map) rsList.get(0);
@@ -143,7 +145,7 @@ public class UserDataAccess {
         ApiResponse objRes = new ApiResponse();
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("p_EntityUserId", entityUserId);
-        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_GetPasswordWithFormat", "Seapos_Dev", inParams);
+        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_GetPasswordWithFormat",  inParams);
         if (!result.isEmpty()) {
             List rsList = (List) result.get("#result-set-1");
             if (!rsList.isEmpty()) {
@@ -162,7 +164,7 @@ public class UserDataAccess {
         UserInfo objRes = new UserInfo();
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("p_UserID", userId);
-        Map<String, Object> result = SQLHelper.getRecord("aspnet_GetUserByUserId", "Seapos_Dev", inParams);
+        Map<String, Object> result = SQLHelper.getRecord("aspnet_GetUserByUserId", inParams);
         if (!result.isEmpty()) {
             List rsList = (List) result.get("#result-set-1");
             if (!rsList.isEmpty()) {
@@ -176,6 +178,7 @@ public class UserDataAccess {
         return objRes;
 
     }
+
 
     public int AddUsersInRoles(String userID, String roleId, int numericUserId) {
         UUID outUserGuid = null;
@@ -205,7 +208,7 @@ public class UserDataAccess {
                 inParams.put("p_PasswordSalt", PasswordSalt);
                 inParams.put("p_CurrentTimeUtc", LocalDateTime.now());
                 inParams.put("p_PasswordFormat", PasswordFormat);
-                Map<String, Object> result = SQLHelper.executeScaler("aspnet_Membership_SetPassword", "Seapos_Dev", inParams);
+                Map<String, Object> result = SQLHelper.executeScaler("aspnet_Membership_SetPassword",  inParams);
                 if (result != null) {
                     java.util.List rsList = (List) result.get("#result-set-1");
                     Map mapData = (Map) rsList.get(0);
@@ -215,4 +218,109 @@ public class UserDataAccess {
             return Result;
         }
 
+
+    public int ActivateUserbyEntity(int NumericUserId, int EntityUserId) {
+
+        int output = 0;
+        Map<String, Object> inParams = new HashMap<>();
+        inParams.put("EntityUserId", EntityUserId);
+        inParams.put("NumericUserId", NumericUserId);
+        Map<String, Object> result = SQLHelper.executeScaler("uspActivateUser", inParams);
+        if (result != null) {
+            java.util.List rsList = (List) result.get("#result-set-1");
+            Map mapData = (Map) rsList.get(0);
+            output = (int) mapData.get("EntityUserId");
+        }
+
+        return output;
+    }
+
+    public String GetUserRole(int EntityUserId) {
+
+        String output = "";
+        Map<String, Object> inParams = new HashMap<>();
+        inParams.put("EntityUserId", EntityUserId);
+
+        Map<String, Object> result = SQLHelper.executeScaler("uspGetUserRole",  inParams);
+        if (result != null) {
+            java.util.List rsList = (List) result.get("#result-set-1");
+            Map mapData = (Map) rsList.get(0);
+            output = (String) mapData.get("RoleId");
+        }
+
+        return output;
+    }
+
+//    public static MembershipUserCustom CreateUser(String username, String password, String email, String passwordQuestion, String encodedPasswordAnswer, String salt,
+//                                                  MembershipCreateStatus status, int UniqueEmail, long empCode , int usertype )
+//    {
+//        String output = "";
+//        MembershipUserCustom objuser = new MembershipUserCustom();
+//        try
+//        {
+//            Map<String, Object> inParams = new HashMap<>();
+//            inParams.put("p_ApplicationName", Appname);
+//            inParams.put("p_UserName", username);
+//            inParams.put("p_Password", password);
+//            inParams.put("p_PasswordSalt", email);
+//            inParams.put("p_Email", email);
+//            inParams.put("p_PasswordQuestion", passwordQuestion);
+//            inParams.put("p_PasswordAnswer", encodedPasswordAnswer);
+//            inParams.put("p_IsApproved", true);
+//            inParams.put("p_CurrentTimeUtc", LocalDateTime.now());
+//            inParams.put("p_CreateDate",  LocalDateTime.now());
+//            inParams.put("p_UniqueEmail", UniqueEmail);
+//
+//            inParams.put("p_PasswordFormat", 1);
+//            inParams.put("p_UserId", EntityUserId);
+//
+//            try
+//            {
+//                Map<String, Object> result = SQLHelper.executeScaler("aspnet_Membership_CreateUser", inParams);
+//                if (result != null) {
+//                    java.util.List rsList = (List) result.get("#result-set-1");
+//                    Map mapData = (Map) rsList.get(0);
+//                    output = (String) mapData.get("ErrorCode");
+//                }
+//            }
+//            catch (SqlException sqlEx)
+//            {
+//                if (sqlEx.Number == 2627 || sqlEx.Number == 2601 || sqlEx.Number == 2512)
+//                {
+//                    status = MembershipCreateStatus.DuplicateUserName;
+//                    return null;
+//                }
+//                throw;
+//            }
+//            int iStatus = ((Return.Value != null) ? ((int)Return.Value) : -1);
+//            if (iStatus < 0 || iStatus > (int)MembershipCreateStatus.ProviderError)
+//                iStatus = (int)MembershipCreateStatus.ProviderError;
+//            status = (MembershipCreateStatus)iStatus;
+//            if (iStatus != 0) // !success
+//                return null;
+//
+//            string ProviderUserKey = (new Guid(Key.Value.ToString())).ToString();
+//            dt = dt.ToLocalTime();
+//
+//
+//            objuser.UserName = username;
+//            objuser.ProviderUserKey = ProviderUserKey;
+//            objuser.Email = email;
+//            objuser.PasswordQuestion = passwordQuestion;
+//            objuser.IsApproved = true;
+//            objuser.IsLockedOut = false;
+//            objuser.CreationDate = dt;
+//            objuser.LastLoginDate = dt;
+//            objuser.LastPasswordChangedDate = dt;
+//        }
+//        finally
+//        {
+//        }
+//        return objuser;
+//
+//    }
+//    private static LocalDateTime  RoundToSeconds(LocalDateTime  utcDateTime)
+//    {
+//        return new LocalDateTime(utcDateTime.getYear(), utcDateTime.getMonth(), utcDateTime.getDayOfMonth(), utcDateTime.getHour(), utcDateTime.getMinute(), utcDateTime.getSecond(), Instant.now());
+//    }
 }

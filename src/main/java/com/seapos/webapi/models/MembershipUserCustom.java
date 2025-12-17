@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 public class MembershipUserCustom {
+    private String ProviderUserKey;
     public String Email ;
     public String PasswordQuestion ;
     public String Comment ;

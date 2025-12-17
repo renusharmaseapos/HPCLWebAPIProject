@@ -22,7 +22,7 @@ public class NotificationDataAcess {
             inParams.put("p_Cashback", notification.getCashback());
             inParams.put("p_TxnDate", notification.getTxnDate());
 
-            Map<String, Object> result = SQLHelper.executeScaler("UspAddNotificationData", "Seapos_Dev", inParams);
+            Map<String, Object> result = SQLHelper.executeScaler("UspAddNotificationData", inParams);
             if (result != null) {
                 java.util.List rsList = (List) result.get("#result-set-1");
                 Map mapData = (Map) rsList.get(0);

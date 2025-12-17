@@ -1,5 +1,6 @@
 package com.seapos.webapi.dataaccess;
 
+import com.zaxxer.hikari.HikariDataSource;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,16 +24,16 @@ public class SQLHelper {
     }
 
     // Execute a stored procedure that returns data
-    public static Map<String, Object> getRecord(String procedureName, String schema, Map<String, Object> inParams) {
+    public static Map<String, Object> getRecord(String procedureName,  Map<String, Object> inParams) {
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
-                .withSchemaName(schema)
+                //.withSchemaName(schema)
                 .withProcedureName(procedureName);
         return jdbcCall.execute(inParams);
     }
 
-    public static List<Map<String, Object>> getRecords(String procedureName, String schema, Map<String, Object> inParams) {
+    public static List<Map<String, Object>> getRecords(String procedureName, Map<String, Object> inParams) {
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
-                .withSchemaName(schema)
+               // .withSchemaName(schema)
                 .withProcedureName(procedureName);
 
         Map<String, Object> data = jdbcCall.execute(inParams);
@@ -40,9 +41,9 @@ public class SQLHelper {
     }
 
     // Execute a stored procedure that returns a scalar value
-    public static Map<String, Object> executeScaler(String procedureName, String schema, Map<String, Object> inParams) {
+    public static Map<String, Object> executeScaler(String procedureName, Map<String, Object> inParams) {
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
-                .withSchemaName(schema)
+               // .withSchemaName(schema)
                 .withProcedureName(procedureName);
         return jdbcCall.execute(inParams);
     }

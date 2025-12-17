@@ -1,64 +1,60 @@
 package com.seapos.webapi.services;
-import com.seapos.webapi.Utility.MembershipCreateStatus;
-import com.seapos.webapi.models.*;
 import com.seapos.webapi.dataaccess.UserDataAccess;
-//import com.seapos.webapi.models.AppProperties;
+import com.seapos.webapi.models.*;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.ResponseEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
-//import javax.servlet.http.HttpServletRequest;
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.UUID;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.Base64;
-import lombok.RequiredArgsConstructor;
-import com.seapos.webapi.Utility.MembershipCreateStatus;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 @Service
+//@RequiredArgsConstructor
 public class UserService {
+    private static final Logger logger = LoggerFactory.getLogger(UserDataAccess.class);
+    //UserDataAccess dataAccess= new UserDataAccess();
+    private final UserDataAccess dataAccess;
 
-
-  //  UserDataAccess dataAccess= new UserDataAccess();
-  private final UserDataAccess dataAccess;
     public UserService(UserDataAccess dataAccess) {
         this.dataAccess = dataAccess;
     }
-    public MembershipUserCustom GetUser(String UserName){
+
+    public MembershipUserCustom GetUser(String UserName) {
         return dataAccess.GetUser(UserName);
     }
+
     public EntityUser validateUserLogin(String username, String password) {
 
         EntityUser entityUser = dataAccess.GetUserbyName(username);
         entityUser.setMessage("");
-        boolean validateUser=false;
+        boolean validateUser = false;
         if (entityUser == null) {
             return null;
         }
         int failedPasswordAttemptCount;
         PassDetail Psdetail = validateUser(username, password);
-        HttpServletRequest request ;
+        HttpServletRequest request;
         String ipAddress = "";// request.getRemoteAddr();
-        if (Psdetail.isPasswordvalid==1)
-        {
+        if (Psdetail.isPasswordvalid == 1) {
             failedPasswordAttemptCount = Psdetail.getFailedPasswordAttemptCount();
             dataAccess.UnlockUser(username);
-            validateUser=true;
-        }
-        else
-        {
+            validateUser = true;
+        } else {
             entityUser.setMessage("Invalid username or password");
         }
         if (validateUser) {
             if (entityUser.getEntityTypeId() == 100) // System
             {
                 entityUser.setRedirectURl("a");
-            }
-            else if (entityUser.getEntityTypeId() == 102 || entityUser.getEntityTypeId() == 1) // merchant
+            } else if (entityUser.getEntityTypeId() == 102 || entityUser.getEntityTypeId() == 1) // merchant
             {
-                dataAccess.AddLoginUserTrailDetails(username,Psdetail.getUserId(),ipAddress,UUID.randomUUID().toString(),true,LocalDateTime.now());
+                dataAccess.AddLoginUserTrailDetails(username, Psdetail.getUserId(), ipAddress, UUID.randomUUID().toString(), true, LocalDateTime.now());
             }
 
             return entityUser;
@@ -67,7 +63,7 @@ public class UserService {
         }
     }
 
-    public  PassDetail validateUser(String userName, String password) {
+    public PassDetail validateUser(String userName, String password) {
         try {
             PassDetail passwordDetail = dataAccess.GetPassworddetails(userName);
 
@@ -149,7 +145,7 @@ public class UserService {
     }
 
 
-    public  ResponseBase forgetUserPassword(ChangePasswordInput objPassword) {
+    public ResponseBase forgetUserPassword(ChangePasswordInput objPassword) {
 
         ResponseBase result = new ResponseBase();
 
@@ -179,14 +175,14 @@ public class UserService {
         try {
             PassDetail passwordDetail = dataAccess.GetPassworddetails(objPassword.getUsername());
             String salt = generateSalt();
-            String HashedPass="";
-            if(passwordDetail.getPasswordFormat() == 1)
-                HashedPass=hashPassword(objPassword.getNewPassword(),salt);
+            String HashedPass = "";
+            if (passwordDetail.getPasswordFormat() == 1)
+                HashedPass = hashPassword(objPassword.getNewPassword(), salt);
             else
-                HashedPass=objPassword.getNewPassword();
+                HashedPass = objPassword.getNewPassword();
 
             // Change password
-            String output = dataAccess.ChangePassword(objPassword.getUsername(),HashedPass,salt, String.valueOf(passwordDetail.getPasswordFormat()));
+            String output = dataAccess.ChangePassword(objPassword.getUsername(), HashedPass, salt, String.valueOf(passwordDetail.getPasswordFormat()));
 
             if (Objects.equals(output, "0")) {
                 result.setResponseCode("1");
@@ -204,6 +200,7 @@ public class UserService {
 
         return result;
     }
+
     private static String generateSalt() {
         int SALT_SIZE = 16;
         byte[] salt = new byte[SALT_SIZE];
@@ -214,14 +211,67 @@ public class UserService {
 
     public ApiResponseModel addOrUpdateUser(AddUserRequest request) {
 
-        String dbMessage = dataAccess.addOrUpdateUser(request);
-
         ApiResponseModel response = new ApiResponseModel();
-        response.setStatus(true);
-        response.setSuccessMessage(dbMessage);
+
+        try {
+            String dbMessage = dataAccess.addOrUpdateUser(request);
+
+            response.setStatus(true);
+            response.setSuccessMessage(dbMessage);
+            return response;
+
+        } catch (DataAccessException ex) {
+
+            String dbMsg = ex.getMostSpecificCause() != null
+                    ? ex.getMostSpecificCause().getMessage()
+                    : ex.getMessage();
+
+            logger.error("SERVICE ERROR | addOrUpdateUser | msg={}", dbMsg);
+
+            // -------- DB BUSINESS ERRORS --------
+            if (dbMsg.contains("Duplicate Email")) {
+                response.setStatus(false);
+                response.setErrorMessage("Email already exists");
+                return response;
+            }
+
+            if (dbMsg.contains("Invalid Merchant")) {
+                response.setStatus(false);
+                response.setErrorMessage("Invalid Merchant Id");
+                return response;
+            }
+
+            // -------- GENERIC FAILURE --------
+            response.setStatus(false);
+            response.setErrorMessage("Unable to process request");
+            return response;
+        }
+    }
+
+    public GetUserInfoResponse getUserInfoList(GetUserInfoRequest request) {
+
+        List<GetUserInfo> users = dataAccess.getUserInfoList(request);
+
+        GetUserInfoResponse response = new GetUserInfoResponse();
+        response.setData(users);
+        response.setEncData(null); // future encryption
+        response.setTotalCount(users.size()); // simple & safe
+
         return response;
     }
-//    public ApiResponse addUser(@RequestBody UserModel userModel) {
+
+    public GetUserInfoResponse getUserInfoEditList(UserInfoSearch request) {
+
+        List<GetUserInfo> users = dataAccess.getUserInfoEditList(request);
+
+        GetUserInfoResponse response = new GetUserInfoResponse();
+        response.setData(users);
+        response.setEncData(null); // future encryption
+        response.setTotalCount(users.size()); // simple & safe
+
+        return response;
+    }
+    //    public ApiResponse addUser(@RequestBody UserModel userModel) {
 //        MembershipUserCustom membershipController = new MembershipUserCustom();
 //        int numericUserId = 0;
 //        ApiResponse response = new ApiResponse();
@@ -331,5 +381,4 @@ public class UserService {
 //            return response;
 //        }
 //    }
-
 }

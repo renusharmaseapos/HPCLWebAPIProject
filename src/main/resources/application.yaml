@@ -1,5 +1,6 @@
 spring:
   application:
+    debug: true
     name: Seapos Web API
     TokenExpiration: 20
     RedirectURL: http://www.c.com/Account/Login.aspx

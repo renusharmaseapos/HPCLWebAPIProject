@@ -11,3 +11,11 @@ spring:
     username: root
     password: stauth
     driver-class-name: com.mysql.cj.jdbc.Driver
+app:
+  email:
+    subject: Status Updated
+    support-mail: support@test.com
+    template-path: src/main/resources/templates
+    hpcl-url: https://hpcl.com
+    download-text: Download App
+    download-link: https://play.google.com/store

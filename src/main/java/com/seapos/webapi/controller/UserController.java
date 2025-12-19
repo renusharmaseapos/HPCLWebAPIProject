@@ -6,10 +6,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/UserManagement")
@@ -46,6 +47,51 @@ public class UserController {
 
         GetUserInfoResponse response = Service.getUserInfoEditList(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/ChangeUserStatus")
+    public ResponseEntity<ApiResponse> changeUserStatus(
+            @RequestBody ChangeUserStatusRequest request) {
+
+        return ResponseEntity.ok(
+                Service.changeUserStatus(request)
+        );
+    }
+
+    @GetMapping("GetClientList/{userId}")
+    public ResponseEntity<ApiResponse> getClientList(
+            @PathVariable("userId") String userId) {
+
+        List<ClientResponseDto> data =
+                Service.getClientList(userId);
+
+        ApiResponse response = new ApiResponse();
+        response.setStatus(true);
+        response.setStatusCode("200");
+        response.setData(data);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("GetRolesByEntityId/{entityTypeId}")
+    public ResponseEntity<Map<String, Object>> getRolesByEntityId(
+            @PathVariable("entityTypeId") int entityTypeId) {
+
+        List<RoleResponseDto> roles =
+                Service.getRolesByEntityTypeId(entityTypeId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("Data", roles);
+
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping("/UnlockUser")
+    public ResponseEntity<UnlockUserModelOutput> unlockUser(
+            @Valid @RequestBody UnlockUserModelInput request
+    ) {
+        return ResponseEntity.ok(
+                Service.unlockUser(request)
+        );
     }
     //    @PostMapping("/addUser")
 //    public ResponseEntity<?> addUser(@RequestBody UserModel userModel) {

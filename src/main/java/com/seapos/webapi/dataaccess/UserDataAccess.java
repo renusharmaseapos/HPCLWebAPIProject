@@ -1,14 +1,19 @@
 package com.seapos.webapi.dataaccess;
 
 import com.seapos.webapi.Utility.MembershipCreateStatus;
+import com.seapos.webapi.Utility.EmailBodyBuilder;
 import com.seapos.webapi.models.*;
 import jakarta.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.stereotype.Service;
+
+import java.sql.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -17,6 +22,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.List;
+import java.util.Map;
+
 
 import static com.seapos.webapi.Filter.JwtRequestFilter.Appname;
 
@@ -25,9 +33,15 @@ public class UserDataAccess {
 
     private static final Logger logger = LoggerFactory.getLogger(UserDataAccess.class);
     private final JdbcTemplate jdbcTemplate;
+    @Value("${app.email.subject}")
+    private String subject;
 
-    public UserDataAccess(JdbcTemplate jdbcTemplate) {
+    @Value("${app.email.support-mail}")
+    private String supportMail;
+    private final JdbcProcedureExecutor executor;
+    public UserDataAccess(JdbcTemplate jdbcTemplate,JdbcProcedureExecutor executor) {
         this.jdbcTemplate = jdbcTemplate;
+        this.executor = executor;
     }
 
     public MembershipUserCustom GetUser(String UserName) {
@@ -286,10 +300,7 @@ public class UserDataAccess {
 
         } catch (DataAccessException ex) {
 
-            String dbMsg = ex.getMostSpecificCause() != null
-                    ? ex.getMostSpecificCause().getMessage()
-                    : ex.getMessage();
-
+            String dbMsg = ex.getMostSpecificCause().getMessage();
             logger.error("DAL ERROR | uspAddEntityUser | email={} | msg={}",
                     r.getEmail(), dbMsg);
 
@@ -447,6 +458,133 @@ public class UserDataAccess {
         return objuser;
 
     }
+
+    public ApiResponse changeUserStatus(@Nonnull ChangeUserStatusRequest r,
+                                        String emailBody) {
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("p_Remarks", r.getRemarks());
+        params.put("p_UserStatusId", r.getUserStatusId());
+        params.put("p_EntityUserId", r.getEntityUserId());
+        params.put("p_ToAddress", r.getUserEmail());
+        params.put("p_Subject", subject);
+        params.put("p_Body", emailBody);
+        params.put("p_ReplyTo", supportMail);
+
+        List<Map<String, Object>> rs =
+                executor.executeForList("UspChangeUserStatus", params);
+
+        if (rs == null || rs.isEmpty()) {
+            return ApiResponse.failure("No response from database");
+        }
+
+        Map<String, Object> row = rs.get(0);
+
+        boolean success =
+                ((Number) row.get("ResponseCode")).intValue() == 1;
+
+        String msg = (String) row.get("ResponseMessage");
+
+        return success
+                ? ApiResponse.success(msg)
+                : ApiResponse.failure(msg);
+    }
+
+    public List<ClientResponseDto> getClientsByUserId(String userId) {
+
+        return jdbcTemplate.execute((Connection con) -> {
+
+            List<ClientResponseDto> clients = new ArrayList<>();
+
+            try (CallableStatement cs =
+                         con.prepareCall("{CALL uspGetClientByUserId(?)}")) {
+
+                cs.setString(1, userId);
+
+                boolean hasResultSet = cs.execute();
+
+                if (hasResultSet) {
+                    try (ResultSet rs = cs.getResultSet()) {
+                        while (rs.next()) {
+                            clients.add(
+                                    new ClientResponseDto(
+                                            rs.getString("ClientId"),
+                                            rs.getString("ClientName")
+                                    )
+                            );
+                        }
+                    }
+                }
+            }
+
+            return clients;
+        });
+    }
+
+    public List<RoleResponseDto> getRolesByEntityTypeId(int entityTypeId) {
+
+        return jdbcTemplate.execute((Connection con) -> {
+
+            List<RoleResponseDto> roles = new ArrayList<>();
+
+            try (CallableStatement cs =
+                         con.prepareCall("{CALL UspGetRolesByEntityId(?)}")) {
+
+                cs.setInt(1, entityTypeId);
+
+                boolean hasResult = cs.execute();
+
+                if (hasResult) {
+                    try (ResultSet rs = cs.getResultSet()) {
+                        while (rs.next()) {
+                            roles.add(
+                                    new RoleResponseDto(
+                                            rs.getString("RoleId"),
+                                            rs.getString("RoleName"),
+                                            rs.getBoolean("IsDefaultRole")
+                                    )
+                            );
+                        }
+                    }
+                }
+            }
+
+            return roles;
+        });
+    }
+
+    public UnlockUserModelOutput unlockUser(
+            UnlockUserModelInput request,
+            String subject,
+            String body
+    ) {
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("p_EntityUserId", request.getEntityUserId());
+        params.put("p_ToAddress", request.getUserEmail());
+        params.put("p_Subject", subject);
+        params.put("p_Body", body);
+        params.put("p_ReplyTo", request.getUserEmail());
+
+        List<Map<String, Object>> result =
+                executor.executeForList("UspUnlockUser", params);
+
+        UnlockUserModelOutput output =
+                new UnlockUserModelOutput();
+
+        if (result != null && !result.isEmpty()) {
+            Map<String, Object> row = result.get(0);
+            output.setResponseCode(
+                    ((Number) row.get("ResponseCode")).intValue()
+            );
+            output.setResponseMessage(
+                    String.valueOf(row.get("ResponseMessage"))
+            );
+        }
+
+        return output;
+    }
+
 }
 //    private static LocalDateTime  RoundToSeconds(LocalDateTime  utcDateTime)
 //    {

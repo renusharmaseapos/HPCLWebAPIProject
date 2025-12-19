@@ -1,11 +1,16 @@
 package com.seapos.webapi.services;
+import com.seapos.webapi.Utility.EmailBodyBuilder;
 import com.seapos.webapi.dataaccess.UserDataAccess;
 import com.seapos.webapi.models.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -18,11 +23,14 @@ import java.util.UUID;
 //@RequiredArgsConstructor
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserDataAccess.class);
-    //UserDataAccess dataAccess= new UserDataAccess();
     private final UserDataAccess dataAccess;
-
-    public UserService(UserDataAccess dataAccess) {
+    private final EmailBodyBuilder emailBodyBuilder;
+    @Value("${app.email.unlock-subject}")
+    private String unlockSubject;
+    public UserService(UserDataAccess dataAccess,
+                       EmailBodyBuilder emailBodyBuilder) {
         this.dataAccess = dataAccess;
+        this.emailBodyBuilder = emailBodyBuilder;
     }
 
     public MembershipUserCustom GetUser(String UserName) {
@@ -270,6 +278,75 @@ public class UserService {
         response.setTotalCount(users.size()); // simple & safe
 
         return response;
+    }
+
+    @Transactional
+    public ApiResponse changeUserStatus(ChangeUserStatusRequest r) {
+
+        try {
+            String emailBody = emailBodyBuilder.build(r);
+
+            // DB decides success / failure
+            return dataAccess.changeUserStatus(r, emailBody);
+
+        } catch (Exception ex) {
+            logger.error("SERVICE_ERROR | changeUserStatus | entityUserId={}",
+                    r.getEntityUserId(), ex);
+            return ApiResponse.failure("Unable to process user status update");
+        }
+    }
+
+    public List<ClientResponseDto> getClientList(String userId) {
+
+        if (!StringUtils.hasText(userId)) {
+            throw new IllegalArgumentException("UserId is required");
+        }
+
+        return dataAccess.getClientsByUserId(userId);
+    }
+    public List<RoleResponseDto> getRolesByEntityTypeId(int entityTypeId) {
+
+        if (entityTypeId <= 0) {
+            throw new IllegalArgumentException("Invalid EntityTypeId");
+        }
+        return dataAccess.getRolesByEntityTypeId(entityTypeId);
+    }
+
+    public UnlockUserModelOutput unlockUser(
+            UnlockUserModelInput request
+    ) {
+
+        if (request.getEntityUserId() <= 0) {
+            throw new IllegalArgumentException("Invalid EntityUserId");
+        }
+
+        String emailBody;
+        try {
+            emailBody = emailBodyBuilder.build(
+                    mapForEmail(request)
+            );
+        } catch (Exception ex) {
+            logger.error("Email template error", ex);
+            throw new IllegalStateException("Email generation failed");
+        }
+
+        return dataAccess.unlockUser(
+                request,
+                unlockSubject,
+                emailBody
+        );
+    }
+    private ChangeUserStatusRequest mapForEmail(
+            UnlockUserModelInput r
+    ) {
+        ChangeUserStatusRequest c =
+                new ChangeUserStatusRequest();
+        c.setEntityUserId(r.getEntityUserId());
+        c.setUserName(r.getUserName());
+        c.setUserStatusId(5902);
+        c.setPageName("unlock/");
+        c.setRemarks("User unlocked");
+        return c;
     }
     //    public ApiResponse addUser(@RequestBody UserModel userModel) {
 //        MembershipUserCustom membershipController = new MembershipUserCustom();

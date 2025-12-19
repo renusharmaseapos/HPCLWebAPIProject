@@ -170,7 +170,7 @@ public class UserDataAccess {
         ApiResponse objRes = new ApiResponse();
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("p_EntityUserId", entityUserId);
-        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_GetPasswordWithFormat", inParams);
+        Map<String, Object> result = SQLHelper.getRecord("uspGetUserIdByEntityUserId", inParams);
         if (!result.isEmpty()) {
             List rsList = (List) result.get("#result-set-1");
             if (!rsList.isEmpty()) {

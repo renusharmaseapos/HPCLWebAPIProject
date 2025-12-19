@@ -12,9 +12,7 @@ public class DeviceService {
     DeviceDataAccess dataAccess;
     public List<DeviceInfo> GetDeviceList(long merchantCode) {
         // Placeholder for actual implementation
-
         dataAccess.GetDeviceList(merchantCode);
-
         return null;
     }
 

@@ -1,5 +1,6 @@
 package com.seapos.webapi.dataaccess;
 
+import com.seapos.webapi.Utility.MembershipCreateStatus;
 import com.seapos.webapi.Utility.EmailBodyBuilder;
 import com.seapos.webapi.models.*;
 import jakarta.annotation.Nonnull;
@@ -13,7 +14,13 @@ import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.List;
 import java.util.Map;
@@ -142,7 +149,7 @@ public class UserDataAccess {
         return 0;
     }
 
-    public boolean UnlockUser(String Usernamee) {
+    public boolean UnlockUserLogin(String Usernamee) {
 
         Map<String, Object> inParams = new HashMap<>();
         Long resultCode = 0L;
@@ -389,6 +396,69 @@ public class UserDataAccess {
         }
     }
 
+    public static MembershipUserCustom CreateUser(String username, String password, String email, String passwordQuestion,
+                                                  String encodedPasswordAnswer, String salt) {
+        String UserId = "";
+        Instant utcNow = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+
+        LocalDateTime localTime = LocalDateTime.ofInstant(utcNow, ZoneId.systemDefault());
+        Timestamp utcTimestamp = Timestamp.from(utcNow);
+
+        int ErrorCode = 0;
+        MembershipUserCustom objuser = new MembershipUserCustom();
+        try {
+            Map<String, Object> inParams = new HashMap<>();
+            inParams.put("p_ApplicationName", Appname);
+            inParams.put("p_UserName", username);
+            inParams.put("p_Password", password);
+            inParams.put("p_PasswordSalt", salt);
+            inParams.put("p_Email", email);
+            inParams.put("p_PasswordQuestion", passwordQuestion);
+            inParams.put("p_PasswordAnswer", encodedPasswordAnswer);
+            inParams.put("p_IsApproved", true);
+            inParams.put("p_CurrentTimeUtc", utcTimestamp);
+            inParams.put("p_CreateDate", utcTimestamp);
+            inParams.put("p_UniqueEmail", true);
+            inParams.put("p_PasswordFormat", 1);
+            inParams.put("p_UserId", null);
+
+            try {
+                Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_CreateUser", inParams);
+                if (!result.isEmpty()) {
+                    List rsList = (List) result.get("#result-set-1");
+                    if (!rsList.isEmpty()) {
+                        Map mapData = (Map) rsList.get(0);
+                        UserId = (String) mapData.get("UserId");
+                        ErrorCode = (int) mapData.get("ErrorCode");
+                    }
+                }
+            } catch (DataAccessException sqlEx) {
+                throw sqlEx;
+            }
+            int iStatus = ErrorCode;
+            if (iStatus < 0 || iStatus > MembershipCreateStatus.PROVIDER_ERROR.ordinal()) {
+                iStatus = MembershipCreateStatus.PROVIDER_ERROR.ordinal();
+            }
+            objuser.setStatus(MembershipCreateStatus.values()[iStatus]);
+            if (objuser.getStatus() != MembershipCreateStatus.SUCCESS) {
+                return null;
+            }
+            objuser.setUsername(username);
+            objuser.setProviderUserKey(UserId);
+            objuser.setEmail(email);
+            objuser.setPasswordQuestion(passwordQuestion);
+            objuser.setApproved(true);
+            objuser.setIsLockedOut(false);
+            objuser.setCreateDate(localTime);
+            objuser.setLastLoginDate(localTime);
+            objuser.setLastPasswordChangedDate(localTime);
+
+        } finally {
+        }
+        return objuser;
+
+    }
+
     public ApiResponse changeUserStatus(@Nonnull ChangeUserStatusRequest r,
                                         String emailBody) {
 
@@ -516,74 +586,6 @@ public class UserDataAccess {
     }
 
 }
-//    public static MembershipUserCustom CreateUser(String username, String password, String email, String passwordQuestion, String encodedPasswordAnswer, String salt,
-//                                                  MembershipCreateStatus status, int UniqueEmail, long empCode , int usertype )
-//    {
-//        String output = "";
-//        MembershipUserCustom objuser = new MembershipUserCustom();
-//        try
-//        {
-//            Map<String, Object> inParams = new HashMap<>();
-//            inParams.put("p_ApplicationName", Appname);
-//            inParams.put("p_UserName", username);
-//            inParams.put("p_Password", password);
-//            inParams.put("p_PasswordSalt", email);
-//            inParams.put("p_Email", email);
-//            inParams.put("p_PasswordQuestion", passwordQuestion);
-//            inParams.put("p_PasswordAnswer", encodedPasswordAnswer);
-//            inParams.put("p_IsApproved", true);
-//            inParams.put("p_CurrentTimeUtc", LocalDateTime.now());
-//            inParams.put("p_CreateDate",  LocalDateTime.now());
-//            inParams.put("p_UniqueEmail", UniqueEmail);
-//
-//            inParams.put("p_PasswordFormat", 1);
-//            inParams.put("p_UserId", EntityUserId);
-//
-//            try
-//            {
-//                Map<String, Object> result = SQLHelper.executeScaler("aspnet_Membership_CreateUser", inParams);
-//                if (result != null) {
-//                    java.util.List rsList = (List) result.get("#result-set-1");
-//                    Map mapData = (Map) rsList.get(0);
-//                    output = (String) mapData.get("ErrorCode");
-//                }
-//            }
-//            catch (SqlException sqlEx)
-//            {
-//                if (sqlEx.Number == 2627 || sqlEx.Number == 2601 || sqlEx.Number == 2512)
-//                {
-//                    status = MembershipCreateStatus.DuplicateUserName;
-//                    return null;
-//                }
-//                throw;
-//            }
-//            int iStatus = ((Return.Value != null) ? ((int)Return.Value) : -1);
-//            if (iStatus < 0 || iStatus > (int)MembershipCreateStatus.ProviderError)
-//                iStatus = (int)MembershipCreateStatus.ProviderError;
-//            status = (MembershipCreateStatus)iStatus;
-//            if (iStatus != 0) // !success
-//                return null;
-//
-//            string ProviderUserKey = (new Guid(Key.Value.ToString())).ToString();
-//            dt = dt.ToLocalTime();
-//
-//
-//            objuser.UserName = username;
-//            objuser.ProviderUserKey = ProviderUserKey;
-//            objuser.Email = email;
-//            objuser.PasswordQuestion = passwordQuestion;
-//            objuser.IsApproved = true;
-//            objuser.IsLockedOut = false;
-//            objuser.CreationDate = dt;
-//            objuser.LastLoginDate = dt;
-//            objuser.LastPasswordChangedDate = dt;
-//        }
-//        finally
-//        {
-//        }
-//        return objuser;
-//
-//    }
 //    private static LocalDateTime  RoundToSeconds(LocalDateTime  utcDateTime)
 //    {
 //        return new LocalDateTime(utcDateTime.getYear(), utcDateTime.getMonth(), utcDateTime.getDayOfMonth(), utcDateTime.getHour(), utcDateTime.getMinute(), utcDateTime.getSecond(), Instant.now());

@@ -1,31 +1,9 @@
-@ -1,50 +1,49 @@
-HELP.md
 ############################
 # Maven
 ############################
 target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-!.mvn/wrapper/maven-wrapper.jar
+*.class
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-############################
-# Logs
-############################
-logs/
-*.log
-
-### IntelliJ IDEA ###
-.idea
-*.iws
 ############################
 # IntelliJ IDEA
 ############################
@@ -35,17 +13,6 @@ logs/
 *.ipr
 out/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
 ############################
 # Eclipse / STS
 ############################
@@ -59,23 +26,12 @@ build/
 # VS Code
 ############################
 .vscode/
-logs/application.log
-logs/application.log
-logs/application.log
-/logs
-/target
-/target
-/target/classes
-/target/classes/com/seapos/webapi/dataaccess
-target/classes/com/seapos/webapi/services/UseService.class
+
+############################
+# Logs
+############################
+logs/
 *.log
-/logs
-/logs
-/target
-/target/classes
-/target/classes/com
-/target/classes/com/seapos/webapi
-/target/classes/com/seapos/webapi/services
 
 ############################
 # OS files
@@ -89,4 +45,3 @@ Thumbs.db
 .env
 application-*.properties
 application-*.yml
-

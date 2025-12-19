@@ -1,32 +1,23 @@
 package com.seapos.webapi.dataaccess;
-import com.seapos.webapi.Filter.JwtRequestFilter;
-import com.seapos.webapi.Utility.MembershipCreateStatus;
-import com.seapos.webapi.models.*;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-import com.seapos.webapi.exception.DalException;
-import com.seapos.webapi.exception.ValidationException;
 import com.seapos.webapi.models.*;
+import jakarta.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Service;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.*;
+
 import static com.seapos.webapi.Filter.JwtRequestFilter.Appname;
 
 @Service
 public class UserDataAccess {
+
     private static final Logger logger = LoggerFactory.getLogger(UserDataAccess.class);
     private final JdbcTemplate jdbcTemplate;
 
@@ -66,7 +57,7 @@ public class UserDataAccess {
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("p_UserName", UserName);
 
-        Map<String, Object> result = SQLHelper.getRecord("uspGetEntityUser",  inParams);
+        Map<String, Object> result = SQLHelper.getRecord("uspGetEntityUser", inParams);
         if (!result.isEmpty()) {
             List rsList = (List) result.get("#result-set-1");
             if (!rsList.isEmpty()) {
@@ -88,7 +79,7 @@ public class UserDataAccess {
         EntityUser Userdata = new EntityUser();
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("p_UserName", UserName);
-        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_GetPasswordWithFormat",  inParams);
+        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_GetPasswordWithFormat", inParams);
         if (!result.isEmpty()) {
             List rsList = (List) result.get("#result-set-1");
             if (!rsList.isEmpty()) {
@@ -139,7 +130,7 @@ public class UserDataAccess {
         return 0;
     }
 
-    public boolean UnlockUserLogin(String Usernamee) {
+    public boolean UnlockUser(String Usernamee) {
 
         Map<String, Object> inParams = new HashMap<>();
         Long resultCode = 0L;
@@ -215,23 +206,23 @@ public class UserDataAccess {
     }
     public String ChangePassword(String UserName, String NewPassword,String PasswordSalt,String PasswordFormat) {
 
-            String Result = "";
-                Map<String, Object> inParams = new HashMap<>();
-                inParams.put("p_ApplicationName", Appname);
-                inParams.put("p_UserName", UserName);
-                inParams.put("p_NewPassword", NewPassword);
-                inParams.put("p_PasswordSalt", PasswordSalt);
-                inParams.put("p_CurrentTimeUtc", LocalDateTime.now());
-                inParams.put("p_PasswordFormat", PasswordFormat);
-                Map<String, Object> result = SQLHelper.executeScaler("aspnet_Membership_SetPassword",  inParams);
-                if (result != null) {
-                    java.util.List rsList = (List) result.get("#result-set-1");
-                    Map mapData = (Map) rsList.get(0);
-                    Result = (String) mapData.get("Result");
-                }
-
-            return Result;
+        String Result = "";
+        Map<String, Object> inParams = new HashMap<>();
+        inParams.put("p_ApplicationName", Appname);
+        inParams.put("p_UserName", UserName);
+        inParams.put("p_NewPassword", NewPassword);
+        inParams.put("p_PasswordSalt", PasswordSalt);
+        inParams.put("p_CurrentTimeUtc", LocalDateTime.now());
+        inParams.put("p_PasswordFormat", PasswordFormat);
+        Map<String, Object> result = SQLHelper.executeScaler("aspnet_Membership_SetPassword", inParams);
+        if (result != null) {
+            java.util.List rsList = (List) result.get("#result-set-1");
+            Map mapData = (Map) rsList.get(0);
+            Result = (String) mapData.get("Result");
         }
+
+        return Result;
+    }
 
 
     public int ActivateUserbyEntity(int NumericUserId, int EntityUserId) {
@@ -256,7 +247,7 @@ public class UserDataAccess {
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("EntityUserId", EntityUserId);
 
-        Map<String, Object> result = SQLHelper.executeScaler("uspGetUserRole",  inParams);
+        Map<String, Object> result = SQLHelper.executeScaler("uspGetUserRole", inParams);
         if (result != null) {
             java.util.List rsList = (List) result.get("#result-set-1");
             Map mapData = (Map) rsList.get(0);
@@ -265,12 +256,13 @@ public class UserDataAccess {
 
         return output;
     }
-    public String addOrUpdateUser(AddUserRequest r) {
+
+    public String addOrUpdateUser(@Nonnull AddUserRequest r) {
 
         try {
-            logger.info("DAL | uspAddEntityUser | email={}", r.getEmail());
+            logger.info("DAL | Calling uspAddEntityUser | email={}", r.getEmail());
 
-            String dbResponse = jdbcTemplate.queryForObject(
+            return jdbcTemplate.queryForObject(
                     "CALL uspAddEntityUser(?,?,?,?,?,?,?,?,?,?,?)",
                     String.class,
                     r.getFirstName(),
@@ -286,29 +278,104 @@ public class UserDataAccess {
                     r.getCreatedBy()
             );
 
-            // DB SUCCESS
-            if (dbResponse == null || dbResponse.trim().isEmpty()) {
-                throw new DalException("Empty response from database", null);
-            }
+        } catch (DataAccessException ex) {
 
-            return dbResponse;
+            String dbMsg = ex.getMostSpecificCause() != null
+                    ? ex.getMostSpecificCause().getMessage()
+                    : ex.getMessage();
 
-        } catch (DataAccessException dae) {
+            logger.error("DAL ERROR | uspAddEntityUser | email={} | msg={}",
+                    r.getEmail(), dbMsg);
 
-            String dbMsg = dae.getMostSpecificCause().getMessage();
-            logger.error("DAL ERROR | email={} | msg={}", r.getEmail(), dbMsg);
 
-            // BUSINESS VALIDATION ERRORS
-            if (dbMsg.contains("Duplicate Email")) {
-                throw new ValidationException("Email already exists");
-            }
+            throw ex;
+        }
+    }
 
-            if (dbMsg.contains("Invalid Merchant")) {
-                throw new ValidationException("Invalid Merchant Id");
-            }
+    public List<GetUserInfo> getUserInfoList(@Nonnull GetUserInfoRequest request) {
 
-            // SYSTEM / DB FAILURE
-            throw new DalException("Database operation failed", dae);
+        String sql = "CALL uspGetUserInfoList(?,?,?,?,?)";
+        logger.info(
+                "Calling uspGetUserInfoList | userTypeId={} | userName={}",
+                request.getUserTypeId(),
+                request.getUserName()
+        );
+        int pageSize = 0;
+        int skipCount = 0;
+        try {
+            return jdbcTemplate.query(
+                    sql,
+                    new Object[]{
+                            0, // p_UserId (not used now)
+                            request.getUserTypeId() == 0 ? null : request.getUserTypeId(),
+                            request.getUserName(),
+                            skipCount,
+                            pageSize
+                    },
+                    new GetUserInfoRowMapper()
+            );
+        } catch (Exception ex) {
+            logger.error(
+                    "DB_ERROR | uspGetUserInfoList | userTypeId={} | userName={}",
+                    request.getUserTypeId(),
+                    request.getUserName(),
+                    ex
+            );
+            throw ex; // let global handler deal with it
+        }
+    }
+
+    public List<GetUserInfo> getUserInfoEditList(@Nonnull UserInfoSearch request) {
+
+        String sql = "CALL uspGetUserInfoList(?,?,?,?,?)";
+        logger.info(
+                "Calling uspGetUserInfoList | UserId={}",
+                request.getUserId()
+
+        );
+//        int pageSize =0;
+//        int skipCount =0;
+        try {
+            return jdbcTemplate.query(
+                    sql,
+                    new Object[]{
+                            request.getUserId(),// p_UserId
+                            null,                // p_UserTypeId
+                            null,                // p_UserName
+                            0,                   // p_SkipCount
+                            0                    // p_PageSize
+                    },
+                    new GetUserInfoRowMapper()
+            );
+        } catch (Exception ex) {
+            logger.error(
+                    "DB_ERROR | uspGetUserInfoList | UserId={}",
+                    request.getUserId(),
+                    ex
+            );
+            throw ex; // let global handler deal with it
+        }
+    }
+
+    private static class GetUserInfoRowMapper implements RowMapper<GetUserInfo> {
+
+        @Nonnull
+        @Override
+        public GetUserInfo mapRow(@Nonnull ResultSet rs, int rowNum) throws SQLException {
+
+            GetUserInfo u = new GetUserInfo();
+            u.setEntityUserId(rs.getInt("UserId"));
+            u.setFirstName(rs.getString("FirstName"));
+            u.setLastName(rs.getString("LastName"));
+            u.setUsername(rs.getString("Username"));
+            u.setEmail(rs.getString("Email"));
+            u.setUserType(rs.getString("UserType"));
+            u.setUserStatus(rs.getString("UserStatus"));
+            u.setMobileNo(rs.getString("Mobile"));
+            u.setEntityTypeId(rs.getInt("EntityTypeId"));
+            u.setRoleId(rs.getString("RoleId"));
+            u.setIsLockedOut(rs.getInt("IsLockedOut"));
+            return u;
         }
     }
 
@@ -385,4 +452,3 @@ public class UserDataAccess {
 //    {
 //        return new LocalDateTime(utcDateTime.getYear(), utcDateTime.getMonth(), utcDateTime.getDayOfMonth(), utcDateTime.getHour(), utcDateTime.getMinute(), utcDateTime.getSecond(), Instant.now());
 //    }
-}

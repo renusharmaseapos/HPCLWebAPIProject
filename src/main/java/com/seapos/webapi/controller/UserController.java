@@ -33,17 +33,17 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-//    @PostMapping("/addUser")
-//    public ResponseEntity<?> addUser(@RequestBody UserModel userModel) {
-//        ApiResponse response = new ApiResponse();
-//        response = Service.addUser(userModel);
-//        if (!response.getStatus())
-//            return ResponseEntity.status(500).body(response);
-//        else
-//            return ResponseEntity.ok(response);
-//    }
-
+    @PostMapping("/AddUserOutside")
+    public ResponseEntity<?> addUser(@RequestBody UserModel userModel) {
+        ApiResponse response = new ApiResponse();
+        response = Service.addUser(userModel);
+        if (!response.getStatus())
+            return ResponseEntity.status(500).body(response);
+        else
+            return ResponseEntity.ok(response);
     }
+
+}
 
 
 

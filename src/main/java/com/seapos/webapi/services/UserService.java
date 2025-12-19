@@ -44,7 +44,7 @@ public class UserService {
         if (Psdetail.isPasswordvalid==1)
         {
             failedPasswordAttemptCount = Psdetail.getFailedPasswordAttemptCount();
-            dataAccess.UnlockUser(username);
+            dataAccess.UnlockUserLogin(username);
             validateUser=true;
         }
         else
@@ -221,115 +221,115 @@ public class UserService {
         response.setSuccessMessage(dbMessage);
         return response;
     }
-//    public ApiResponse addUser(@RequestBody UserModel userModel) {
-//        MembershipUserCustom membershipController = new MembershipUserCustom();
-//        int numericUserId = 0;
-//        ApiResponse response = new ApiResponse();
-//        long entityCode = 0;
-//        boolean isApproved = true;
-//        MembershipCreateStatus status;
-//
-//        try {
-//            // Verify that the provided EntityUserId is valid before proceeding
-//            ApiResponse usrResponse = dataAccess.GetUserByEntityUserId(userModel.getEntityUserId());
-//            if (Objects.equals(usrResponse.getStatusCode(), "1")) {
-//
-//                // Create the membership user
-//                MembershipUserCustom user =new  MembershipUserCustom();
-////                = membershipController.createUser(
-////                        userModel.getUserName(),
-////                        userModel.getPassword(),
-////                        userModel.getEmail(),
-////                        String.valueOf(userModel.getSecretQuestionId()),
-////                        userModel.getSecretQuestionAnswer(),
-////                        isApproved,
-////                        java.util.UUID.randomUUID(),
-////                        status
-////                );
-//
-//                if (user != null) {
-//                    String userId = user.getProviderUserKey();
-//                    numericUserId = dataAccess.GetUserByUserId(userId).getUserID();
-//                    entityCode = userModel.getEntityCode() == 0 ? 0 : userModel.getEntityCode();
-//
-//                    // Activate the user for the given entity
-//                    int EntityUserId = dataAccess.ActivateUserbyEntity(numericUserId, userModel.getEntityUserId());
-//
-//                    // Retrieve role identifier for the entity
-//                    String roleId = dataAccess.GetUserRole(EntityUserId);
-//                    if (userId.length() > 0 && roleId != null && !roleId.isEmpty()) {
-//                        // Assign the user to the role
-//                        dataAccess.AddUsersInRoles(userId, roleId, numericUserId);
-//                    }
-//
-//                    // Final check for successful creation
-//                    if (EntityUserId > 0) {
-//                        response.setStatus(true);
-//                        response.setSuccessMessage("User added successfully.");
-//                    } else {
-//                        response.setStatus(false);
-//                        response.setErrorMessage("User add unsuccessful.");
-//                    }
-//                } else {
-//
-//                    // Handle different MembershipCreateStatus cases
-//                    switch (status) {
-//                        case DUPLICATE_USER_NAME:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("Username already exists. Please enter a different user name.");
-//                            break;
-//                        case DUPLICATE_EMAIL:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("A username for that email address already exists. Please enter a different email address.");
-//                            break;
-//                        case INVALID_PASSWORD:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The password provided is invalid. Please enter a valid password value.");
-//                            break;
-//                        case INVALID_EMAIL:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The email address provided is invalid. Please check the value and try again.");
-//                            break;
-//                        case INVALID_ANSWER:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The password retrieval answer provided is invalid. Please check the value and try again.");
-//                            break;
-//                        case INVALID_QUESTION:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The password retrieval question provided is invalid. Please check the value and try again.");
-//                            break;
-//                        case INVALID_USER_NAME:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The user name provided is invalid. Please check the value and try again.");
-//                            break;
-//                        case PROVIDER_ERROR:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The authentication provider returned an error. Please verify your entry and try again. If the problem persists, please contact your system administrator.");
-//                            break;
-//                        case USER_REJECTED:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The user creation request has been canceled. Please verify your entry and try again. If the problem persists, please contact your system administrator.");
-//                            break;
-//                        default:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("An unknown error occurred. Please verify your entry and try again. If the problem persists, please contact your system administrator.");
-//                            break;
-//                    }
-//                }
-//            } else {
-//                // Propagate error from GetUserByEntityUserId
-//                response.setStatus(false);
-//                response.setErrorMessage(usrResponse.getMessage());
-//            }
-//
-//            return response;
-//        } catch (Exception e) {
-//            // Log the exception and return a response
-//            e.printStackTrace();
-//            response.setStatus(false);
-//            response.setErrorMessage("An unexpected error occurred.");
-//            return response;
-//        }
-//    }
+    public ApiResponse addUser(@RequestBody UserModel userModel) {
+        MembershipUserCustom membershipController = new MembershipUserCustom();
+        int numericUserId = 0;
+        ApiResponse response = new ApiResponse();
+        long entityCode = 0;
+        boolean isApproved = true;
+        MembershipCreateStatus status;
+
+        try {
+            // Verify that the provided EntityUserId is valid before proceeding
+            ApiResponse usrResponse = dataAccess.GetUserByEntityUserId(userModel.getEntityUserId());
+            String Salt=generateSalt();
+            String EncPassword= hashPassword(userModel.getPassword(),Salt);
+
+            if (Objects.equals(usrResponse.getStatusCode(), "1")) {
+
+                // Create the membership user
+                MembershipUserCustom user
+                = dataAccess.CreateUser(
+                        userModel.getUserName(),
+                        EncPassword,
+                        userModel.getEmail(),
+                        String.valueOf(userModel.getSecretQuestionId()),
+                        userModel.getSecretQuestionAnswer(),Salt
+                );
+
+                if (user != null) {
+                    String userId = user.getProviderUserKey();
+                    numericUserId = dataAccess.GetUserByUserId(userId).getUserID();
+                    entityCode = userModel.getEntityCode() == 0 ? 0 : userModel.getEntityCode();
+
+                    // Activate the user for the given entity
+                    int EntityUserId = dataAccess.ActivateUserbyEntity(numericUserId, userModel.getEntityUserId());
+
+                    // Retrieve role identifier for the entity
+                    String roleId = dataAccess.GetUserRole(EntityUserId);
+                    if (userId.length() > 0 && roleId != null && !roleId.isEmpty()) {
+                        // Assign the user to the role
+                        dataAccess.AddUsersInRoles(userId, roleId, numericUserId);
+                    }
+
+                    // Final check for successful creation
+                    if (EntityUserId > 0) {
+                        response.setStatus(true);
+                        response.setSuccessMessage("User added successfully.");
+                    } else {
+                        response.setStatus(false);
+                        response.setErrorMessage("User add unsuccessful.");
+                    }
+                } else {
+
+                    // Handle different MembershipCreateStatus cases
+                    switch (user.getStatus()) {
+                        case DUPLICATE_USER_NAME:
+                            response.setStatus(false);
+                            response.setErrorMessage("Username already exists. Please enter a different user name.");
+                            break;
+                        case DUPLICATE_EMAIL:
+                            response.setStatus(false);
+                            response.setErrorMessage("A username for that email address already exists. Please enter a different email address.");
+                            break;
+                        case INVALID_PASSWORD:
+                            response.setStatus(false);
+                            response.setErrorMessage("The password provided is invalid. Please enter a valid password value.");
+                            break;
+                        case INVALID_EMAIL:
+                            response.setStatus(false);
+                            response.setErrorMessage("The email address provided is invalid. Please check the value and try again.");
+                            break;
+                        case INVALID_ANSWER:
+                            response.setStatus(false);
+                            response.setErrorMessage("The password retrieval answer provided is invalid. Please check the value and try again.");
+                            break;
+                        case INVALID_QUESTION:
+                            response.setStatus(false);
+                            response.setErrorMessage("The password retrieval question provided is invalid. Please check the value and try again.");
+                            break;
+                        case INVALID_USER_NAME:
+                            response.setStatus(false);
+                            response.setErrorMessage("The user name provided is invalid. Please check the value and try again.");
+                            break;
+                        case PROVIDER_ERROR:
+                            response.setStatus(false);
+                            response.setErrorMessage("The authentication provider returned an error. Please verify your entry and try again. If the problem persists, please contact your system administrator.");
+                            break;
+                        case USER_REJECTED:
+                            response.setStatus(false);
+                            response.setErrorMessage("The user creation request has been canceled. Please verify your entry and try again. If the problem persists, please contact your system administrator.");
+                            break;
+                        default:
+                            response.setStatus(false);
+                            response.setErrorMessage("An unknown error occurred. Please verify your entry and try again. If the problem persists, please contact your system administrator.");
+                            break;
+                    }
+                }
+            } else {
+                // Propagate error from GetUserByEntityUserId
+                response.setStatus(false);
+                response.setErrorMessage(usrResponse.getMessage());
+            }
+
+            return response;
+        } catch (Exception e) {
+            // Log the exception and return a response
+            e.printStackTrace();
+            response.setStatus(false);
+            response.setErrorMessage("An unexpected error occurred.");
+            return response;
+        }
+  }
 
 }

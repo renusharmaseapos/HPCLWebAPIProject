@@ -28,8 +28,8 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserDataAccess.class);
     private final UserDataAccess dataAccess;
     private final EmailBodyBuilder emailBodyBuilder;
-    @Value("${app.email.unlock-subject}")
-    private String unlockSubject;
+//    @Value("${app.email.unlock-subject}")
+//    private String unlockSubject;
     public UserService(UserDataAccess dataAccess,
                        EmailBodyBuilder emailBodyBuilder) {
         this.dataAccess = dataAccess;
@@ -426,30 +426,30 @@ public class UserService {
         return dataAccess.getRolesByEntityTypeId(entityTypeId);
     }
 
-    public UnlockUserModelOutput unlockUser(
-            UnlockUserModelInput request
-    ) {
-
-        if (request.getEntityUserId() <= 0) {
-            throw new IllegalArgumentException("Invalid EntityUserId");
-        }
-
-        String emailBody;
-        try {
-            emailBody = emailBodyBuilder.build(
-                    mapForEmail(request)
-            );
-        } catch (Exception ex) {
-            logger.error("Email template error", ex);
-            throw new IllegalStateException("Email generation failed");
-        }
-
-        return dataAccess.unlockUser(
-                request,
-                unlockSubject,
-                emailBody
-        );
-    }
+//    public UnlockUserModelOutput unlockUser(
+//            UnlockUserModelInput request
+//    ) {
+//
+//        if (request.getEntityUserId() <= 0) {
+//            throw new IllegalArgumentException("Invalid EntityUserId");
+//        }
+//
+//        String emailBody;
+//        try {
+//            emailBody = emailBodyBuilder.build(
+//                    mapForEmail(request)
+//            );
+//        } catch (Exception ex) {
+//            logger.error("Email template error", ex);
+//            throw new IllegalStateException("Email generation failed");
+//        }
+//
+//        return dataAccess.unlockUser(
+//                request,
+//                unlockSubject,
+//                emailBody
+//        );
+//    }
     private ChangeUserStatusRequest mapForEmail(
             UnlockUserModelInput r
     ) {

@@ -85,14 +85,14 @@ public class UserController {
 
         return ResponseEntity.ok(response);
     }
-    @PostMapping("/UnlockUser")
-    public ResponseEntity<UnlockUserModelOutput> unlockUser(
-            @Valid @RequestBody UnlockUserModelInput request
-    ) {
-        return ResponseEntity.ok(
-                Service.unlockUser(request)
-        );
-    }
+//    @PostMapping("/UnlockUser")
+//    public ResponseEntity<UnlockUserModelOutput> unlockUser(
+//            @Valid @RequestBody UnlockUserModelInput request
+//    ) {
+//        return ResponseEntity.ok(
+//                Service.unlockUser(request)
+//        );
+//    }
     //    @PostMapping("/addUser")
 //    public ResponseEntity<?> addUser(@RequestBody UserModel userModel) {
 //        ApiResponse response = new ApiResponse();

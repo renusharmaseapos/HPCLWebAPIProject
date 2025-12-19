@@ -553,37 +553,37 @@ public class UserDataAccess {
         });
     }
 
-    public UnlockUserModelOutput unlockUser(
-            UnlockUserModelInput request,
-            String subject,
-            String body
-    ) {
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("p_EntityUserId", request.getEntityUserId());
-        params.put("p_ToAddress", request.getUserEmail());
-        params.put("p_Subject", subject);
-        params.put("p_Body", body);
-        params.put("p_ReplyTo", request.getUserEmail());
-
-        List<Map<String, Object>> result =
-                executor.executeForList("UspUnlockUser", params);
-
-        UnlockUserModelOutput output =
-                new UnlockUserModelOutput();
-
-        if (result != null && !result.isEmpty()) {
-            Map<String, Object> row = result.get(0);
-            output.setResponseCode(
-                    ((Number) row.get("ResponseCode")).intValue()
-            );
-            output.setResponseMessage(
-                    String.valueOf(row.get("ResponseMessage"))
-            );
-        }
-
-        return output;
-    }
+//    public UnlockUserModelOutput unlockUser(
+//            UnlockUserModelInput request,
+//            String subject,
+//            String body
+//    ) {
+//
+//        Map<String, Object> params = new HashMap<>();
+//        params.put("p_EntityUserId", request.getEntityUserId());
+//        params.put("p_ToAddress", request.getUserEmail());
+//        params.put("p_Subject", subject);
+//        params.put("p_Body", body);
+//        params.put("p_ReplyTo", request.getUserEmail());
+//
+//        List<Map<String, Object>> result =
+//                executor.executeForList("UspUnlockUser", params);
+//
+//        UnlockUserModelOutput output =
+//                new UnlockUserModelOutput();
+//
+//        if (result != null && !result.isEmpty()) {
+//            Map<String, Object> row = result.get(0);
+//            output.setResponseCode(
+//                    ((Number) row.get("ResponseCode")).intValue()
+//            );
+//            output.setResponseMessage(
+//                    String.valueOf(row.get("ResponseMessage"))
+//            );
+//        }
+//
+//        return output;
+//    }
 
 }
 //    private static LocalDateTime  RoundToSeconds(LocalDateTime  utcDateTime)

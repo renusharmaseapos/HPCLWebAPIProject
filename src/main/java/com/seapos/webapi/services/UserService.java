@@ -1,19 +1,17 @@
 package com.seapos.webapi.services;
 import com.seapos.webapi.Utility.MembershipCreateStatus;
 import com.seapos.webapi.Utility.EmailBodyBuilder;
+import com.seapos.webapi.Utility.enums.EmailType;
 import com.seapos.webapi.dataaccess.UserDataAccess;
 import com.seapos.webapi.models.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
-
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -28,8 +26,6 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserDataAccess.class);
     private final UserDataAccess dataAccess;
     private final EmailBodyBuilder emailBodyBuilder;
-//    @Value("${app.email.unlock-subject}")
-//    private String unlockSubject;
     public UserService(UserDataAccess dataAccess,
                        EmailBodyBuilder emailBodyBuilder) {
         this.dataAccess = dataAccess;
@@ -233,9 +229,13 @@ public class UserService {
 
         } catch (DataAccessException ex) {
 
-            String dbMsg = ex.getMostSpecificCause() != null
-                    ? ex.getMostSpecificCause().getMessage()
-                    : ex.getMessage();
+//            String dbMsg = ex.getMostSpecificCause() != null
+//                    ? ex.getMostSpecificCause().getMessage()
+//                    : ex.getMessage();
+            String dbMsg = Objects.toString(
+                    ex.getMostSpecificCause().getMessage(),
+                    ex.getMessage()
+            );
 
             logger.error("SERVICE ERROR | addOrUpdateUser | msg={}", dbMsg);
 
@@ -282,6 +282,7 @@ public class UserService {
 
         return response;
     }
+
     public ApiResponse addUser(@RequestBody UserModel userModel) {
         MembershipUserCustom membershipController = new MembershipUserCustom();
         int numericUserId = 0;
@@ -300,7 +301,7 @@ public class UserService {
 
                 // Create the membership user
                 MembershipUserCustom user
-                = dataAccess.CreateUser(
+                        = dataAccess.CreateUser(
                         userModel.getUserName(),
                         EncPassword,
                         userModel.getEmail(),
@@ -391,24 +392,50 @@ public class UserService {
             response.setErrorMessage("An unexpected error occurred.");
             return response;
         }
-  }
-
-
-    @Transactional
-    public ApiResponse changeUserStatus(ChangeUserStatusRequest r) {
-
-        try {
-            String emailBody = emailBodyBuilder.build(r);
-
-            // DB decides success / failure
-            return dataAccess.changeUserStatus(r, emailBody);
-
-        } catch (Exception ex) {
-            logger.error("SERVICE_ERROR | changeUserStatus | entityUserId={}",
-                    r.getEntityUserId(), ex);
-            return ApiResponse.failure("Unable to process user status update");
-        }
     }
+
+@Transactional
+public ApiResponse changeUserStatus(ChangeUserStatusRequest r) {
+
+    logger.info(  "SERVICE | changeUserStatus | entityUserId={} | statusId={}",
+            r.getEntityUserId(),
+            r.getUserStatusId()
+    );
+
+    try {
+        //Build email body using STATUS_UPDATE config
+        String emailBody =
+                emailBodyBuilder.build(
+                        EmailType.STATUS_UPDATE,
+                        r
+                );
+
+        String subject =
+                emailBodyBuilder.getSubject(
+                        EmailType.STATUS_UPDATE
+                );
+
+        return dataAccess.changeUserStatus(
+                r,
+                emailBody,
+                subject
+        );
+
+    } catch (IllegalArgumentException ex) {
+        logger.warn(
+                "VALIDATION_ERROR | changeUserStatus | entityUserId={}",
+                r.getEntityUserId(),
+                ex
+        );
+        return ApiResponse.failure(ex.getMessage());
+
+    } catch (Exception ex) {
+        throw new IllegalStateException(
+                "Unable to process user status update",
+                ex
+        );
+    }
+}
 
     public List<ClientResponseDto> getClientList(String userId) {
 
@@ -426,30 +453,36 @@ public class UserService {
         return dataAccess.getRolesByEntityTypeId(entityTypeId);
     }
 
-//    public UnlockUserModelOutput unlockUser(
-//            UnlockUserModelInput request
-//    ) {
-//
-//        if (request.getEntityUserId() <= 0) {
-//            throw new IllegalArgumentException("Invalid EntityUserId");
-//        }
-//
-//        String emailBody;
-//        try {
-//            emailBody = emailBodyBuilder.build(
-//                    mapForEmail(request)
-//            );
-//        } catch (Exception ex) {
-//            logger.error("Email template error", ex);
-//            throw new IllegalStateException("Email generation failed");
-//        }
-//
-//        return dataAccess.unlockUser(
-//                request,
-//                unlockSubject,
-//                emailBody
-//        );
-//    }
+    public UnlockUserModelOutput unlockUser(
+            UnlockUserModelInput request
+    ) {
+
+        if (request.getEntityUserId() <= 0) {
+            throw new IllegalArgumentException("Invalid EntityUserId");
+        }
+
+        try {
+            String emailBody =
+                    emailBodyBuilder.build(
+                            EmailType.USER_UNLOCK,
+                            mapForEmail(request)
+                    );
+            String subject =
+                    emailBodyBuilder.getSubject(
+                            EmailType.USER_UNLOCK
+                    );
+            return dataAccess.unlockUser(
+                    request,
+                    subject,
+                    emailBody
+            );
+
+        } catch (Exception ex) {
+            throw new IllegalStateException(
+                    "Unable to unlock user", ex
+            );
+        }
+    }
     private ChangeUserStatusRequest mapForEmail(
             UnlockUserModelInput r
     ) {

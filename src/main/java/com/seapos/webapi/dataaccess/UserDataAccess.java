@@ -1,7 +1,7 @@
 package com.seapos.webapi.dataaccess;
 
 import com.seapos.webapi.Utility.MembershipCreateStatus;
-import com.seapos.webapi.Utility.EmailBodyBuilder;
+import com.seapos.webapi.config.EmailConfig;
 import com.seapos.webapi.models.*;
 import jakarta.annotation.Nonnull;
 import org.slf4j.Logger;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
@@ -33,15 +32,15 @@ public class UserDataAccess {
 
     private static final Logger logger = LoggerFactory.getLogger(UserDataAccess.class);
     private final JdbcTemplate jdbcTemplate;
-    @Value("${app.email.subject}")
-    private String subject;
-
-    @Value("${app.email.support-mail}")
-    private String supportMail;
+    private final EmailConfig emailConfig;
     private final JdbcProcedureExecutor executor;
-    public UserDataAccess(JdbcTemplate jdbcTemplate,JdbcProcedureExecutor executor) {
+    public UserDataAccess(JdbcTemplate jdbcTemplate,
+                          JdbcProcedureExecutor executor,
+                          EmailConfig emailConfig) {
         this.jdbcTemplate = jdbcTemplate;
         this.executor = executor;
+        this.emailConfig=emailConfig;
+
     }
 
     public MembershipUserCustom GetUser(String UserName) {
@@ -459,8 +458,11 @@ public class UserDataAccess {
 
     }
 
-    public ApiResponse changeUserStatus(@Nonnull ChangeUserStatusRequest r,
-                                        String emailBody) {
+    public ApiResponse changeUserStatus(
+            @Nonnull ChangeUserStatusRequest r,
+            String emailBody,
+            String subject
+    ) {
 
         Map<String, Object> params = new HashMap<>();
         params.put("p_Remarks", r.getRemarks());
@@ -469,7 +471,7 @@ public class UserDataAccess {
         params.put("p_ToAddress", r.getUserEmail());
         params.put("p_Subject", subject);
         params.put("p_Body", emailBody);
-        params.put("p_ReplyTo", supportMail);
+        params.put("p_ReplyTo", emailConfig.getCommon().getSupportMail());
 
         List<Map<String, Object>> rs =
                 executor.executeForList("UspChangeUserStatus", params);
@@ -553,37 +555,37 @@ public class UserDataAccess {
         });
     }
 
-//    public UnlockUserModelOutput unlockUser(
-//            UnlockUserModelInput request,
-//            String subject,
-//            String body
-//    ) {
-//
-//        Map<String, Object> params = new HashMap<>();
-//        params.put("p_EntityUserId", request.getEntityUserId());
-//        params.put("p_ToAddress", request.getUserEmail());
-//        params.put("p_Subject", subject);
-//        params.put("p_Body", body);
-//        params.put("p_ReplyTo", request.getUserEmail());
-//
-//        List<Map<String, Object>> result =
-//                executor.executeForList("UspUnlockUser", params);
-//
-//        UnlockUserModelOutput output =
-//                new UnlockUserModelOutput();
-//
-//        if (result != null && !result.isEmpty()) {
-//            Map<String, Object> row = result.get(0);
-//            output.setResponseCode(
-//                    ((Number) row.get("ResponseCode")).intValue()
-//            );
-//            output.setResponseMessage(
-//                    String.valueOf(row.get("ResponseMessage"))
-//            );
-//        }
-//
-//        return output;
-//    }
+    public UnlockUserModelOutput unlockUser(
+            UnlockUserModelInput request,
+            String subject,
+            String body
+    ) {
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("p_EntityUserId", request.getEntityUserId());
+        params.put("p_ToAddress", request.getUserEmail());
+        params.put("p_Subject", subject);
+        params.put("p_Body", body);
+        params.put("p_ReplyTo", request.getUserEmail());
+
+        List<Map<String, Object>> result =
+                executor.executeForList("UspUnlockUser", params);
+
+        UnlockUserModelOutput output =
+                new UnlockUserModelOutput();
+
+        if (result != null && !result.isEmpty()) {
+            Map<String, Object> row = result.get(0);
+            output.setResponseCode(
+                    ((Number) row.get("ResponseCode")).intValue()
+            );
+            output.setResponseMessage(
+                    String.valueOf(row.get("ResponseMessage"))
+            );
+        }
+
+        return output;
+    }
 
 }
 //    private static LocalDateTime  RoundToSeconds(LocalDateTime  utcDateTime)

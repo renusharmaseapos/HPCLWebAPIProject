@@ -1,4 +1,5 @@
 package com.seapos.webapi.services;
+import com.seapos.webapi.Utility.MembershipCreateStatus;
 import com.seapos.webapi.dataaccess.UserDataAccess;
 import com.seapos.webapi.models.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -6,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -43,7 +46,7 @@ public class UserService {
         String ipAddress = "";// request.getRemoteAddr();
         if (Psdetail.isPasswordvalid == 1) {
             failedPasswordAttemptCount = Psdetail.getFailedPasswordAttemptCount();
-            dataAccess.UnlockUser(username);
+            dataAccess.UnlockUserLogin(username);
             validateUser = true;
         } else {
             entityUser.setMessage("Invalid username or password");

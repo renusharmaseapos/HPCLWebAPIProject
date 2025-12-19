@@ -56,9 +56,9 @@ public class UserController {
 //        else
 //            return ResponseEntity.ok(response);
 //    }
-}
+
     @PostMapping("/AddUserOutside")
-    public ResponseEntity<?> addUser(@RequestBody UserModel userModel) {
+    public ResponseEntity<?> AddUserOutside(@RequestBody UserModel userModel) {
         ApiResponse response = new ApiResponse();
         response = Service.addUser(userModel);
         if (!response.getStatus())

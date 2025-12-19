@@ -1,5 +1,6 @@
 package com.seapos.webapi.dataaccess;
 
+import com.seapos.webapi.Utility.MembershipCreateStatus;
 import com.seapos.webapi.models.*;
 import jakarta.annotation.Nonnull;
 import org.slf4j.Logger;
@@ -10,7 +11,11 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static com.seapos.webapi.Filter.JwtRequestFilter.Appname;
@@ -130,7 +135,7 @@ public class UserDataAccess {
         return 0;
     }
 
-    public boolean UnlockUser(String Usernamee) {
+    public boolean UnlockUserLogin(String Usernamee) {
 
         Map<String, Object> inParams = new HashMap<>();
         Long resultCode = 0L;
@@ -151,7 +156,7 @@ public class UserDataAccess {
         ApiResponse objRes = new ApiResponse();
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("p_EntityUserId", entityUserId);
-        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_GetPasswordWithFormat",  inParams);
+        Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_GetPasswordWithFormat", inParams);
         if (!result.isEmpty()) {
             List rsList = (List) result.get("#result-set-1");
             if (!rsList.isEmpty()) {
@@ -204,7 +209,8 @@ public class UserDataAccess {
         Map<String, Object> result = SQLHelper.executeNonQuery("uspInsertUsersInRoles", inParams);
         return 0;
     }
-    public String ChangePassword(String UserName, String NewPassword,String PasswordSalt,String PasswordFormat) {
+
+    public String ChangePassword(String UserName, String NewPassword, String PasswordSalt, String PasswordFormat) {
 
         String Result = "";
         Map<String, Object> inParams = new HashMap<>();
@@ -380,18 +386,16 @@ public class UserDataAccess {
     }
 
     public static MembershipUserCustom CreateUser(String username, String password, String email, String passwordQuestion,
-                                                  String encodedPasswordAnswer, String salt)
-    {
+                                                  String encodedPasswordAnswer, String salt) {
         String UserId = "";
         Instant utcNow = Instant.now().truncatedTo(ChronoUnit.SECONDS);
 
-        LocalDateTime localTime =  LocalDateTime.ofInstant(utcNow, ZoneId.systemDefault());
+        LocalDateTime localTime = LocalDateTime.ofInstant(utcNow, ZoneId.systemDefault());
         Timestamp utcTimestamp = Timestamp.from(utcNow);
 
-        int ErrorCode=0;
+        int ErrorCode = 0;
         MembershipUserCustom objuser = new MembershipUserCustom();
-        try
-        {
+        try {
             Map<String, Object> inParams = new HashMap<>();
             inParams.put("p_ApplicationName", Appname);
             inParams.put("p_UserName", username);
@@ -402,13 +406,12 @@ public class UserDataAccess {
             inParams.put("p_PasswordAnswer", encodedPasswordAnswer);
             inParams.put("p_IsApproved", true);
             inParams.put("p_CurrentTimeUtc", utcTimestamp);
-            inParams.put("p_CreateDate",  utcTimestamp);
+            inParams.put("p_CreateDate", utcTimestamp);
             inParams.put("p_UniqueEmail", true);
             inParams.put("p_PasswordFormat", 1);
             inParams.put("p_UserId", null);
 
-            try
-            {
+            try {
                 Map<String, Object> result = SQLHelper.getRecord("aspnet_Membership_CreateUser", inParams);
                 if (!result.isEmpty()) {
                     List rsList = (List) result.get("#result-set-1");
@@ -418,10 +421,8 @@ public class UserDataAccess {
                         ErrorCode = (int) mapData.get("ErrorCode");
                     }
                 }
-            }
-            catch (DataAccessException sqlEx)
-            {
-                         throw sqlEx;
+            } catch (DataAccessException sqlEx) {
+                throw sqlEx;
             }
             int iStatus = ErrorCode;
             if (iStatus < 0 || iStatus > MembershipCreateStatus.PROVIDER_ERROR.ordinal()) {
@@ -441,13 +442,12 @@ public class UserDataAccess {
             objuser.setLastLoginDate(localTime);
             objuser.setLastPasswordChangedDate(localTime);
 
-       }
-        finally
-        {
+        } finally {
         }
         return objuser;
 
     }
+}
 //    private static LocalDateTime  RoundToSeconds(LocalDateTime  utcDateTime)
 //    {
 //        return new LocalDateTime(utcDateTime.getYear(), utcDateTime.getMonth(), utcDateTime.getDayOfMonth(), utcDateTime.getHour(), utcDateTime.getMinute(), utcDateTime.getSecond(), Instant.now());

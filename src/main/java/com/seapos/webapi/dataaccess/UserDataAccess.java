@@ -556,7 +556,7 @@ public class UserDataAccess {
     }
 
     public UnlockUserModelOutput unlockUser(
-            UnlockUserModelInput request,
+            @Nonnull UnlockUserModelInput request,
             String subject,
             String body
     ) {

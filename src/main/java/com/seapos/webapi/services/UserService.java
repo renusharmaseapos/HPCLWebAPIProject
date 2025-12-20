@@ -4,6 +4,7 @@ import com.seapos.webapi.Utility.EmailBodyBuilder;
 import com.seapos.webapi.Utility.enums.EmailType;
 import com.seapos.webapi.dataaccess.UserDataAccess;
 import com.seapos.webapi.models.*;
+import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,10 +27,13 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserDataAccess.class);
     private final UserDataAccess dataAccess;
     private final EmailBodyBuilder emailBodyBuilder;
+
     public UserService(UserDataAccess dataAccess,
-                       EmailBodyBuilder emailBodyBuilder) {
+                       EmailBodyBuilder emailBodyBuilder
+                       ) {
         this.dataAccess = dataAccess;
         this.emailBodyBuilder = emailBodyBuilder;
+
     }
 
     public MembershipUserCustom GetUser(String UserName) {
@@ -454,7 +458,7 @@ public ApiResponse changeUserStatus(ChangeUserStatusRequest r) {
     }
 
     public UnlockUserModelOutput unlockUser(
-            UnlockUserModelInput request
+            @Nonnull UnlockUserModelInput request
     ) {
 
         if (request.getEntityUserId() <= 0) {
@@ -495,6 +499,7 @@ public ApiResponse changeUserStatus(ChangeUserStatusRequest r) {
         c.setRemarks("User unlocked");
         return c;
     }
+
     //    public ApiResponse addUser(@RequestBody UserModel userModel) {
 //        MembershipUserCustom membershipController = new MembershipUserCustom();
 //        int numericUserId = 0;

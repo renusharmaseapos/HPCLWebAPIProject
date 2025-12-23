@@ -34,7 +34,7 @@ public class EmailBodyBuilder {
             if (type == EmailType.STATUS_UPDATE) {
 
                 String template =
-                        r.getUserStatusId() == 5902
+                        r.getUserStatusId() == 5904
                                 ? "UserApprovedTemplate.html"
                                 : "UserRejectedTemplate.html";
 
@@ -68,6 +68,18 @@ public class EmailBodyBuilder {
     /**
      * Reads template file and replaces placeholders.
      */
+    private String buildLink(String baseUrl, String pageName, String encryptedId) {
+
+        if (!baseUrl.endsWith("/")) {
+            baseUrl = baseUrl + "/";
+        }
+
+        if (pageName.startsWith("/")) {
+            pageName = pageName.substring(1);
+        }
+
+        return baseUrl + pageName + encryptedId;
+    }
     private String buildFromTemplate(
             String templateFile,
             ChangeUserStatusRequest r
@@ -86,14 +98,23 @@ public class EmailBodyBuilder {
                 StandardCharsets.UTF_8
         );
 
-        String link = commonConfig.getHpclUrl()
-                + r.getPageName()
-                + CryptoUtil.encryptBase64(
-                r.getEntityUserId().toString()
+//        String link = commonConfig.getHpclUrl()
+//                + r.getPageName()
+//                + CryptoUtil.encryptBase64(
+//                r.getEntityUserId().toString()
+//        );
+        String link = buildLink(
+                commonConfig.getHpclUrl(),
+                r.getPageName(),
+                CryptoUtil.encryptBase64(
+                        r.getEntityUserId().toString()
+                )
         );
 
+
         return body
-                .replace("@UserName", r.getUserName())
+                //.replace("@UserName", r.getUserName())
+                .replace("@UserName", "user")
                 .replace("@Remarks",
                         r.getRemarks() == null ? "" : r.getRemarks())
                 .replace("@hyperlink", link)

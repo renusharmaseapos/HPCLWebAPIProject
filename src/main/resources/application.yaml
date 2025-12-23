@@ -16,7 +16,8 @@ app:
     common:
       support-mail: support@test.com
       template-path: templates
-      hpcl-url: https://hpcl.com
+      #hpcl-url: https://hpcl.com
+      hpcl-url:  http://localhost:8080
       download-text: Download App
       download-link: https://play.google.com/store
 

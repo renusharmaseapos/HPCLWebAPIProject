@@ -104,6 +104,39 @@ public class UserController {
             return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/getRolePermissions")
+    public ResponseEntity<RolePermissions> getRolePermissions(
+            @RequestBody UserPrivilegeSearch request
+    ) {
+        return ResponseEntity.ok(
+                Service.getRolePermissions(request)
+        );
+    }
+
+    @PostMapping("/AddUserRole")
+    public ResponseEntity<ApiResponseModel> addRole(
+            @RequestBody AddRoleRequest request) {
+
+        String message = Service.addOrUpdateRole(request);
+
+        ApiResponseModel response = new ApiResponseModel();
+        response.setStatus(true);
+        response.setChangeRequest(false);
+        response.setSuccessMessage(message);
+        response.setErrorMessage(null);
+        response.setRedirectURL(null);
+        response.setJsonRequest(null);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/GetUserRoleList")
+    public ResponseEntity<UserRoleList> getUserRoleList(
+            @RequestBody UserRoleSearch request) {
+
+        UserRoleList response = Service.getUserRoleList(request);
+        return ResponseEntity.ok(response);
+    }
 }
 
 

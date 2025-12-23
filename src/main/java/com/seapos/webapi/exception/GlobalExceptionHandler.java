@@ -17,40 +17,57 @@ public class GlobalExceptionHandler {
     private static final Logger logger =
             LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleAllExceptions(
-            Exception ex,
-            HttpServletRequest request) {
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<?> handleAllExceptions(
+//            Exception ex,
+//            HttpServletRequest request) {
+//
+//        logger.error("UNHANDLED_EXCEPTION | uri={} | message={}",
+//                request.getRequestURI(), ex.getMessage(), ex);
+//
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body("Something went wrong. Please try again later.");
+//    }
+//    @ExceptionHandler(DataAccessException.class)
+//    public ResponseEntity<?> handleDataAccessException(
+//            DataAccessException ex, HttpServletRequest request) {
+//
+//        logger.error("DATA_ACCESS_EXCEPTION | uri={} | message={}",
+//                request.getRequestURI(), ex.getMessage(), ex);
+//
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body("Database error occurred. Please try again.");
+//    }
+//
+//    @ExceptionHandler(DalException.class)
+//    public ResponseEntity<?> handleDalException(
+//            DalException ex, HttpServletRequest request) {
+//
+//        logger.error("DAL_EXCEPTION | uri={} | message={}",
+//                request.getRequestURI(), ex.getMessage(), ex);
+//
+//        return ResponseEntity
+//                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body("Database error occurred. Please try again.");
+//    }
+//
+//    @ExceptionHandler(ValidationException.class)
+//    public ResponseEntity<?> handleValidationException(
+//            ValidationException ex, HttpServletRequest request) {
+//
+//        logger.warn("VALIDATION_ERROR | uri={} | message={}",
+//                request.getRequestURI(), ex.getMessage());
+//
+//        return ResponseEntity
+//                .status(HttpStatus.BAD_REQUEST)
+//                .body(ex.getMessage());
+//    }
+//    @ExceptionHandler(IOException.class)
+//    public void handleIOException(IOException ex) {
+//        logger.warn("CLIENT_ABORTED_CONNECTION | {}", ex.getMessage());
+//    }
 
-        logger.error("UNHANDLED_EXCEPTION | uri={} | message={}",
-                request.getRequestURI(), ex.getMessage(), ex);
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Something went wrong. Please try again later.");
-    }
-    @ExceptionHandler(DataAccessException.class)
-    public ResponseEntity<?> handleDataAccessException(
-            DataAccessException ex, HttpServletRequest request) {
-
-        logger.error("DATA_ACCESS_EXCEPTION | uri={} | message={}",
-                request.getRequestURI(), ex.getMessage(), ex);
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Database error occurred. Please try again.");
-    }
-
-    @ExceptionHandler(DalException.class)
-    public ResponseEntity<?> handleDalException(
-            DalException ex, HttpServletRequest request) {
-
-        logger.error("DAL_EXCEPTION | uri={} | message={}",
-                request.getRequestURI(), ex.getMessage(), ex);
-
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Database error occurred. Please try again.");
-    }
-
+    // Validation (400)
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<?> handleValidationException(
             ValidationException ex, HttpServletRequest request) {
@@ -62,10 +79,58 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ex.getMessage());
     }
+
+    /* ===============================
+       DAL Business Errors (400)
+       =============================== */
+    @ExceptionHandler(DalException.class)
+    public ResponseEntity<?> handleDalException(
+            DalException ex, HttpServletRequest request) {
+
+        logger.warn("DAL_EXCEPTION | uri={} | message={}",
+                request.getRequestURI(), ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
+
+    /* ===============================
+       Database Errors (500)
+       =============================== */
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<?> handleDataAccessException(
+            DataAccessException ex, HttpServletRequest request) {
+
+        logger.error("DATA_ACCESS_EXCEPTION | uri={} | message={}",
+                request.getRequestURI(), ex.getMessage(), ex);
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Database error occurred. Please try again.");
+    }
+
+    /* ===============================
+       Client Abort (IGNORE)
+       =============================== */
     @ExceptionHandler(IOException.class)
     public void handleIOException(IOException ex) {
         logger.warn("CLIENT_ABORTED_CONNECTION | {}", ex.getMessage());
     }
 
+    /* ===============================
+       Fallback (LAST)
+       =============================== */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleAllExceptions(
+            Exception ex, HttpServletRequest request) {
+
+        logger.error("UNHANDLED_EXCEPTION | uri={} | message={}",
+                request.getRequestURI(), ex.getMessage(), ex);
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Something went wrong. Please try again later.");
+    }
 
 }

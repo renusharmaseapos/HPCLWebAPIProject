@@ -1,8 +1,14 @@
 package com.seapos.webapi.services;
-import com.seapos.webapi.Utility.MembershipCreateStatus;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seapos.webapi.Utility.EmailBodyBuilder;
+import com.seapos.webapi.Utility.MembershipCreateStatus;
 import com.seapos.webapi.Utility.enums.EmailType;
 import com.seapos.webapi.dataaccess.UserDataAccess;
+import com.seapos.webapi.exception.DalException;
+import com.seapos.webapi.exception.ValidationException;
 import com.seapos.webapi.models.*;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,29 +16,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+
 @Service
 //@RequiredArgsConstructor
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserDataAccess.class);
     private final UserDataAccess dataAccess;
     private final EmailBodyBuilder emailBodyBuilder;
+    private final ObjectMapper objectMapper;
 
     public UserService(UserDataAccess dataAccess,
-                       EmailBodyBuilder emailBodyBuilder
-                       ) {
+                       EmailBodyBuilder emailBodyBuilder,
+                       ObjectMapper objectMapper
+    ) {
         this.dataAccess = dataAccess;
         this.emailBodyBuilder = emailBodyBuilder;
+        this.objectMapper=objectMapper;
 
     }
 
@@ -298,8 +306,8 @@ public class UserService {
         try {
             // Verify that the provided EntityUserId is valid before proceeding
             ApiResponse usrResponse = dataAccess.GetUserByEntityUserId(userModel.getEntityUserId());
-            String Salt=generateSalt();
-            String EncPassword= hashPassword(userModel.getPassword(),Salt);
+            String Salt = generateSalt();
+            String EncPassword = hashPassword(userModel.getPassword(), Salt);
 
             if (Objects.equals(usrResponse.getStatusCode(), "1")) {
 
@@ -310,7 +318,7 @@ public class UserService {
                         EncPassword,
                         userModel.getEmail(),
                         String.valueOf(userModel.getSecretQuestionId()),
-                        userModel.getSecretQuestionAnswer(),Salt
+                        userModel.getSecretQuestionAnswer(), Salt
                 );
 
                 if (user != null) {
@@ -398,48 +406,48 @@ public class UserService {
         }
     }
 
-@Transactional
-public ApiResponse changeUserStatus(ChangeUserStatusRequest r) {
+    @Transactional
+    public ApiResponse changeUserStatus(ChangeUserStatusRequest r) {
 
-    logger.info(  "SERVICE | changeUserStatus | entityUserId={} | statusId={}",
-            r.getEntityUserId(),
-            r.getUserStatusId()
-    );
-
-    try {
-        //Build email body using STATUS_UPDATE config
-        String emailBody =
-                emailBodyBuilder.build(
-                        EmailType.STATUS_UPDATE,
-                        r
-                );
-
-        String subject =
-                emailBodyBuilder.getSubject(
-                        EmailType.STATUS_UPDATE
-                );
-
-        return dataAccess.changeUserStatus(
-                r,
-                emailBody,
-                subject
-        );
-
-    } catch (IllegalArgumentException ex) {
-        logger.warn(
-                "VALIDATION_ERROR | changeUserStatus | entityUserId={}",
+        logger.info("SERVICE | changeUserStatus | entityUserId={} | statusId={}",
                 r.getEntityUserId(),
-                ex
+                r.getUserStatusId()
         );
-        return ApiResponse.failure(ex.getMessage());
 
-    } catch (Exception ex) {
-        throw new IllegalStateException(
-                "Unable to process user status update",
-                ex
-        );
+        try {
+            //Build email body using STATUS_UPDATE config
+            String emailBody =
+                    emailBodyBuilder.build(
+                            EmailType.STATUS_UPDATE,
+                            r
+                    );
+
+            String subject =
+                    emailBodyBuilder.getSubject(
+                            EmailType.STATUS_UPDATE
+                    );
+
+            return dataAccess.changeUserStatus(
+                    r,
+                    emailBody,
+                    subject
+            );
+
+        } catch (IllegalArgumentException ex) {
+            logger.warn(
+                    "VALIDATION_ERROR | changeUserStatus | entityUserId={}",
+                    r.getEntityUserId(),
+                    ex
+            );
+            return ApiResponse.failure(ex.getMessage());
+
+        } catch (Exception ex) {
+            throw new IllegalStateException(
+                    "Unable to process user status update",
+                    ex
+            );
+        }
     }
-}
 
     public List<ClientResponseDto> getClientList(String userId) {
 
@@ -449,6 +457,7 @@ public ApiResponse changeUserStatus(ChangeUserStatusRequest r) {
 
         return dataAccess.getClientsByUserId(userId);
     }
+
     public List<RoleResponseDto> getRolesByEntityTypeId(int entityTypeId) {
 
         if (entityTypeId <= 0) {
@@ -487,6 +496,7 @@ public ApiResponse changeUserStatus(ChangeUserStatusRequest r) {
             );
         }
     }
+
     private ChangeUserStatusRequest mapForEmail(
             UnlockUserModelInput r
     ) {
@@ -499,115 +509,74 @@ public ApiResponse changeUserStatus(ChangeUserStatusRequest r) {
         c.setRemarks("User unlocked");
         return c;
     }
+    public RolePermissions getRolePermissions(UserPrivilegeSearch request) {
 
-    //    public ApiResponse addUser(@RequestBody UserModel userModel) {
-//        MembershipUserCustom membershipController = new MembershipUserCustom();
-//        int numericUserId = 0;
-//        ApiResponse response = new ApiResponse();
-//        long entityCode = 0;
-//        boolean isApproved = true;
-//        MembershipCreateStatus status;
-//
-//        try {
-//            // Verify that the provided EntityUserId is valid before proceeding
-//            ApiResponse usrResponse = dataAccess.GetUserByEntityUserId(userModel.getEntityUserId());
-//            if (Objects.equals(usrResponse.getStatusCode(), "1")) {
-//
-//                // Create the membership user
-//                MembershipUserCustom user =new  MembershipUserCustom();
-////                = membershipController.createUser(
-////                        userModel.getUserName(),
-////                        userModel.getPassword(),
-////                        userModel.getEmail(),
-////                        String.valueOf(userModel.getSecretQuestionId()),
-////                        userModel.getSecretQuestionAnswer(),
-////                        isApproved,
-////                        java.util.UUID.randomUUID(),
-////                        status
-////                );
-//
-//                if (user != null) {
-//                    String userId = user.getProviderUserKey();
-//                    numericUserId = dataAccess.GetUserByUserId(userId).getUserID();
-//                    entityCode = userModel.getEntityCode() == 0 ? 0 : userModel.getEntityCode();
-//
-//                    // Activate the user for the given entity
-//                    int EntityUserId = dataAccess.ActivateUserbyEntity(numericUserId, userModel.getEntityUserId());
-//
-//                    // Retrieve role identifier for the entity
-//                    String roleId = dataAccess.GetUserRole(EntityUserId);
-//                    if (userId.length() > 0 && roleId != null && !roleId.isEmpty()) {
-//                        // Assign the user to the role
-//                        dataAccess.AddUsersInRoles(userId, roleId, numericUserId);
-//                    }
-//
-//                    // Final check for successful creation
-//                    if (EntityUserId > 0) {
-//                        response.setStatus(true);
-//                        response.setSuccessMessage("User added successfully.");
-//                    } else {
-//                        response.setStatus(false);
-//                        response.setErrorMessage("User add unsuccessful.");
-//                    }
-//                } else {
-//
-//                    // Handle different MembershipCreateStatus cases
-//                    switch (status) {
-//                        case DUPLICATE_USER_NAME:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("Username already exists. Please enter a different user name.");
-//                            break;
-//                        case DUPLICATE_EMAIL:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("A username for that email address already exists. Please enter a different email address.");
-//                            break;
-//                        case INVALID_PASSWORD:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The password provided is invalid. Please enter a valid password value.");
-//                            break;
-//                        case INVALID_EMAIL:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The email address provided is invalid. Please check the value and try again.");
-//                            break;
-//                        case INVALID_ANSWER:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The password retrieval answer provided is invalid. Please check the value and try again.");
-//                            break;
-//                        case INVALID_QUESTION:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The password retrieval question provided is invalid. Please check the value and try again.");
-//                            break;
-//                        case INVALID_USER_NAME:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The user name provided is invalid. Please check the value and try again.");
-//                            break;
-//                        case PROVIDER_ERROR:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The authentication provider returned an error. Please verify your entry and try again. If the problem persists, please contact your system administrator.");
-//                            break;
-//                        case USER_REJECTED:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("The user creation request has been canceled. Please verify your entry and try again. If the problem persists, please contact your system administrator.");
-//                            break;
-//                        default:
-//                            response.setStatus(false);
-//                            response.setErrorMessage("An unknown error occurred. Please verify your entry and try again. If the problem persists, please contact your system administrator.");
-//                            break;
-//                    }
-//                }
-//            } else {
-//                // Propagate error from GetUserByEntityUserId
-//                response.setStatus(false);
-//                response.setErrorMessage(usrResponse.getMessage());
-//            }
-//
-//            return response;
-//        } catch (Exception e) {
-//            // Log the exception and return a response
-//            e.printStackTrace();
-//            response.setStatus(false);
-//            response.setErrorMessage("An unexpected error occurred.");
-//            return response;
-//        }
-//    }
+        logger.info("SERVICE_START | getRolePermissions | roleId={}",
+                request.getRoleId());
+
+        String json = dataAccess.fetchRolePermissionJson(request.getRoleId());
+
+        try {
+            // 1️⃣ Parse DB JSON
+            JsonNode rootNode = objectMapper.readTree(json);
+
+            // 2️⃣ Extract RolePermission node
+            JsonNode rolePermissionNode = rootNode.get("RolePermission");
+
+            // 3️⃣ Convert JSON → POJO (same as XmlSerializer in .NET)
+            RolePermissions rolePermissions =
+                    objectMapper.treeToValue(
+                            rolePermissionNode,
+                            RolePermissions.class
+                    );
+
+            // 4️⃣ SAME LOGIC as .NET:
+            // Menu.Where(x => x.Page.Count > 0)
+            rolePermissions.getMenu()
+                    .removeIf(menu -> menu.getPage().isEmpty());
+
+            logger.info("SERVICE_SUCCESS | getRolePermissions | roleId={}",
+                    request.getRoleId());
+
+            return rolePermissions;
+
+        } catch (Exception ex) {
+            logger.error("ROLE_PERMISSION_PARSE_ERROR", ex);
+            throw new IllegalStateException(
+                    "Failed to parse role permission JSON", ex
+            );
+        }
+    }
+
+
+
+    public String addOrUpdateRole(AddRoleRequest request) {
+
+        if (request.getRoleName() == null || request.getRoleName().isBlank()) {
+            throw new ValidationException("RoleName must not be empty");
+        }
+
+        if (request.getEntityTypeId() <= 0) {
+            throw new ValidationException("Invalid EntityTypeId");
+        }
+
+        if (request.getPermissions() == null || request.getPermissions().isEmpty()) {
+            throw new ValidationException("At least one permission is required");
+        }
+
+        return dataAccess.addOrUpdateRole(request);
+    }
+
+    public UserRoleList getUserRoleList(UserRoleSearch request) {
+
+        if (request.getPageSize() <= 0) {
+            request.setPageSize(10);
+        }
+
+        if (request.getSkipCount() < 0) {
+            request.setSkipCount(0);
+        }
+
+        return dataAccess.getUserRoleList(request);
+    }
 }

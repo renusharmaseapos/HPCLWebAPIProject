@@ -1,4 +1,5 @@
 package com.seapos.webapi.exception;
+
 public class EmailTemplateException extends RuntimeException {
 
     public EmailTemplateException(String message) {

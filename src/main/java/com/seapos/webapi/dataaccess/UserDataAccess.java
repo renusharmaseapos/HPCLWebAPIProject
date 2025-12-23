@@ -1,7 +1,11 @@
 package com.seapos.webapi.dataaccess;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.seapos.webapi.Utility.MembershipCreateStatus;
 import com.seapos.webapi.config.EmailConfig;
+import com.seapos.webapi.exception.DalException;
 import com.seapos.webapi.models.*;
 import jakarta.annotation.Nonnull;
 import org.slf4j.Logger;
@@ -34,12 +38,16 @@ public class UserDataAccess {
     private final JdbcTemplate jdbcTemplate;
     private final EmailConfig emailConfig;
     private final JdbcProcedureExecutor executor;
+    private final ObjectMapper objectMapper;
+
+
     public UserDataAccess(JdbcTemplate jdbcTemplate,
                           JdbcProcedureExecutor executor,
                           EmailConfig emailConfig) {
         this.jdbcTemplate = jdbcTemplate;
         this.executor = executor;
-        this.emailConfig=emailConfig;
+        this.emailConfig = emailConfig;
+        this.objectMapper = new ObjectMapper();
 
     }
 
@@ -439,9 +447,9 @@ public class UserDataAccess {
                 iStatus = MembershipCreateStatus.PROVIDER_ERROR.ordinal();
             }
             objuser.setStatus(MembershipCreateStatus.values()[iStatus]);
-            if (objuser.getStatus() != MembershipCreateStatus.SUCCESS) {
-                return null;
-            }
+//            if (objuser.getStatus() != MembershipCreateStatus.SUCCESS) {
+//                return null;
+//            }
             objuser.setUsername(username);
             objuser.setProviderUserKey(UserId);
             objuser.setEmail(email);
@@ -586,9 +594,171 @@ public class UserDataAccess {
 
         return output;
     }
+    public String fetchRolePermissionJson(String roleId) {
 
+        logger.info("DB_CALL uspGetRolePermission | roleId={}", roleId);
+
+        return jdbcTemplate.queryForObject(
+                "CALL uspGetRolePermission(?)",
+                new Object[]{roleId},
+                String.class
+        );
+    }
+    public String addOrUpdateRole(AddRoleRequest request) {
+
+        logger.info("DB_CALL | uspAddRole | roleName={}", request.getRoleName());
+
+        try {
+            String permissionsJson = buildPermissionsJson(request.getPermissions());
+
+            Map<String, Object> params = new HashMap<>();
+            params.put("p_ApplicationName", request.getApplicationName());
+            params.put("p_RoleId", request.getRoleId());
+            params.put("p_RoleName", request.getRoleName());
+            params.put("p_Description", request.getDescription());
+            params.put("p_IsDefault", request.isDefault() ? 1 : 0);
+            params.put("p_EntityTypeId", request.getEntityTypeId());
+            params.put("p_UserId", request.getUserId());
+            params.put("p_Active", request.isActive() ? 1 : 0);
+            params.put("p_permissions_json", permissionsJson);
+
+            List<Map<String, Object>> rs =
+                    executor.executeForList("uspAddRole", params);
+
+            if (rs == null || rs.isEmpty()) {
+                throw new DalException(
+                        "ROLE_SAVE_FAILED",
+                        "No response from database"
+                );
+            }
+
+            return rs.get(0).values().iterator().next().toString();
+
+        } catch (DataAccessException dae) {
+
+            String dbMessage =
+                    Optional.ofNullable(dae.getMostSpecificCause())
+                            .map(Throwable::getMessage)
+                            .orElse("Database error");
+
+            throw new DalException("ROLE_DB_ERROR", dbMessage, dae);
+        }
+    }
+
+    /* -----------------------------
+       Permissions JSON Builder
+       ----------------------------- */
+    private String buildPermissionsJson(List<RolePermissionRequest> permissions) {
+
+        if (permissions == null || permissions.isEmpty()) {
+            return "[]";
+        }
+
+        ArrayNode arrayNode = objectMapper.createArrayNode();
+
+        for (RolePermissionRequest p : permissions) {
+
+            int permissionType =
+                    p.getView()
+                            + (p.getAdd() * 2)
+                            + (p.getUpdate() * 4)
+                            + (p.getDelete() * 8);
+
+            int needsApproval =
+                    p.getAddNeedApproval()
+                            + (p.getUpdateNeedApproval() * 2)
+                            + (p.getDeleteNeedApproval() * 4);
+
+            int canApprove =
+                    p.getAddCanApprove()
+                            + (p.getUpdateCanApprove() * 2)
+                            + (p.getDeleteCanApprove() * 4);
+
+            ObjectNode node = objectMapper.createObjectNode();
+            node.put("ControlId", p.getControlId());
+            node.put("PermissionType", permissionType);
+            node.put("PermissionNeedsApproval", needsApproval);
+            node.put("PermissionCanApprove", canApprove);
+
+            arrayNode.add(node);
+        }
+
+        return arrayNode.toString();
+    }
+
+    public UserRoleList getUserRoleList(UserRoleSearch r) {
+
+        logger.info(
+                "DB_CALL | uspGetRoles | roleId={} | roleName={} | entityTypeId={}",
+                r.getRoleId(),
+                r.getRoleName(),
+                r.getUserTypeId()
+        );
+
+        return jdbcTemplate.execute((Connection con) -> {
+
+            UserRoleList result = new UserRoleList();
+            List<UserRoleData> roles = new ArrayList<>();
+
+            try (CallableStatement cs =
+                         con.prepareCall("{CALL uspGetRoles(?,?,?,?,?)}")) {
+
+                // ---------- PARAMETERS ----------
+                cs.setString(1, r.getRoleId());          // p_RoleId
+                cs.setString(2, r.getRoleName());        // p_RoleName
+
+                cs.setInt(
+                        3,
+                        r.getUserTypeId() == null
+                                ? 0
+                                : Integer.parseInt(r.getUserTypeId())
+                );
+
+                cs.setInt(4, r.getSkipCount());          // p_SkipCount
+                cs.setInt(5, r.getPageSize());           // p_PageSize
+
+                boolean hasResult = cs.execute();
+
+                // ---------- RESULTSET 1 : DATA ----------
+                if (hasResult) {
+                    try (ResultSet rs = cs.getResultSet()) {
+                        while (rs.next()) {
+
+                            UserRoleData row = new UserRoleData();
+
+                            row.setApplicationName(null);
+                            row.setRoleId(rs.getString("RoleId"));
+                            row.setRoleName(rs.getString("RoleName"));
+                            row.setDescription(rs.getString("Description"));
+                            row.setUserType(rs.getString("UserType"));
+                            row.setUserId(0);
+                            row.setCreatedBy(rs.getString("CreatedBy"));
+                            row.setCreatedDate(rs.getString("CreatedDate"));
+                            row.setModifiedBy(rs.getString("ModifiedBy"));
+                            row.setModifiedDate(rs.getString("ModifiedDate"));
+                            row.setDefault(rs.getBoolean("IsDefaultRole"));
+                            row.setActive(rs.getBoolean("Active"));
+                            row.setStatus(rs.getString("Status"));
+                            row.setCommandType(null);
+                            row.setPermissions(null);
+
+                            roles.add(row);
+                        }
+                    }
+                }
+
+                // ---------- RESULTSET 2 : TOTAL COUNT ----------
+                if (cs.getMoreResults()) {
+                    try (ResultSet rs2 = cs.getResultSet()) {
+                        if (rs2.next()) {
+                            result.setTotalCount(rs2.getInt("TotalCount"));
+                        }
+                    }
+                }
+
+                result.setData(roles);
+                return result;
+            }
+        });
+    }
 }
-//    private static LocalDateTime  RoundToSeconds(LocalDateTime  utcDateTime)
-//    {
-//        return new LocalDateTime(utcDateTime.getYear(), utcDateTime.getMonth(), utcDateTime.getDayOfMonth(), utcDateTime.getHour(), utcDateTime.getMinute(), utcDateTime.getSecond(), Instant.now());
-//    }
